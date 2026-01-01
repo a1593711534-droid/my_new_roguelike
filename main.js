@@ -290,7 +290,14 @@ function tryDash() {
     spawnParticles(player.x, player.y, 10, '#00ccff');
 }
 
+// --- 貼在 main.js 中，替換原本的 togglePause 與 resumeGame 函式 ---
+
 function togglePause() {
+    // [Fix] 防止在其他 UI 開啟時觸發暫停
+    if(document.getElementById('levelup-modal').style.display === 'flex') return;
+    if(document.getElementById('shop-modal').style.display === 'flex') return;
+    if(document.getElementById('gear-viewer-modal').style.display === 'flex') return;
+
     if(gameState === 'PLAY') {
         gameState = 'PAUSE';
         document.getElementById('pause-overlay').style.display = 'flex';
@@ -299,9 +306,12 @@ function togglePause() {
 }
 
 function resumeGame() {
-    if(gameState === 'PAUSE') {
+    const overlay = document.getElementById('pause-overlay');
+    
+    // [Fix] 放寬恢復條件：只要是 PAUSE 狀態，或者遮罩是顯示的 (修復狀態不同步的 BUG)，都允許恢復
+    if(gameState === 'PAUSE' || (overlay && overlay.style.display !== 'none')) {
         gameState = 'PLAY';
-        document.getElementById('pause-overlay').style.display = 'none';
+        if(overlay) overlay.style.display = 'none';
         document.getElementById('skill-detail-popup').style.display = 'none';
         document.getElementById('dash-btn').style.display = 'flex';
         lastTime = performance.now();

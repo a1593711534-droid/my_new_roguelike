@@ -281,6 +281,8 @@ function sortInventory(items, category) {
     });
 }
 
+// --- [修改] inventory.js ---
+
 function renderInventoryStrip() {
     let actives = player.inventory.filter(i => i.type === 'active');
     let supports = player.inventory.filter(i => i.type === 'support');
@@ -338,6 +340,10 @@ function renderInventoryStrip() {
         if(item.type === 'active' || item.type === 'support') {
             let color = item.type === 'active' ? '#f55' : '#55f';
             div.innerHTML += `<span style="color:${color}; font-weight:bold; font-family:'Orbitron';">${item.def.s}</span><span style="font-size:9px; color:#aaa;">Lv${item.level}</span>`;
+        } else if (item.type === 'material') {
+            // [New] 道具的渲染樣式
+            div.style.borderColor = '#d4af37';
+            div.innerHTML += `<span class="inv-icon">${item.def.icon}</span><span style="font-size:9px; color:#aaa;">${item.def.name}</span>`;
         } else {
             let borderColor = '#444';
             if(item.def.maxSockets >= 6) borderColor = '#aa8800';
@@ -352,6 +358,13 @@ function renderInventoryStrip() {
 
         div.onclick = (e) => {
             e.stopPropagation();
+
+            // [New] 道具點擊處理
+            if (item.type === 'material') {
+                updateInfoPanel(item.def, 'material');
+                // 道具不能進行融合或裝備，所以只顯示資訊後返回
+                return;
+            }
 
             if (fusionState.main) {
                 if (fusionState.main.item.uuid === item.uuid) return;
@@ -411,4 +424,40 @@ function renderInventoryStrip() {
     actives.forEach(i => renderItem(i, 'inv-active-list'));
     supports.forEach(i => renderItem(i, 'inv-support-list'));
     equips.forEach(i => renderItem(i, 'inv-equip-list'));
+}
+
+// --- [新增] inventory.js 底部 ---
+
+// 建立特殊材料道具 (洗鏈/洗孔)
+function createMaterialItem(typeKey) {
+    let def = {};
+    if(typeKey === 'linker') {
+        def = { id: 'linker', name: '納米鏈接器', icon: '🔗', type: 'material', desc: '特殊的能量鏈接裝置，可用於免費重置裝備的能量連結。' };
+    } else if (typeKey === 'socket_drill') {
+        def = { id: 'socket_drill', name: '高能雷射鑽', icon: '🔩', type: 'material', desc: '精密的雷射開孔工具，可用於免費重置裝備的鑲嵌孔數量。' };
+    }
+    
+    return {
+        uuid: generateUUID(),
+        slotId: 'material', // 設定虛擬 slotId 以便在裝備欄過濾器中顯示
+        type: 'material',
+        def: def,
+        sockets: [], // 保持結構一致
+        links: [],
+        level: 1,
+        timestamp: Date.now()
+    };
+}
+
+// 加入材料到背包
+function addMaterialToInventory(typeKey) {
+    let item = createMaterialItem(typeKey);
+    player.inventory.push(item);
+    showToast(`獲得道具: ${item.def.name}`);
+    
+    // 若介面開啟中，即時更新
+    if(gameState === 'SHOP') {
+        renderInventoryStrip();
+        renderForge(); // 更新按鈕狀態
+    }
 }

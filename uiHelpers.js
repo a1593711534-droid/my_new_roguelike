@@ -124,6 +124,8 @@ function calculateEffectStats(def, level) {
     return { text: "", subText: "" };
 }
 
+// --- [修改] uiHelpers.js ---
+
 function updateInfoPanel(def, type, level = 1, shopObj=null) {
     const prefix = "dash";
     
@@ -132,6 +134,15 @@ function updateInfoPanel(def, type, level = 1, shopObj=null) {
         document.getElementById(prefix + '-meta-row').innerHTML = `<span class="type-badge" style="color:#666; border-color:#333;">系統待機</span>`;
         document.getElementById(prefix + '-info-desc').innerText = "請選擇項目後，點擊右側融合槽進行配置。";
         document.getElementById(prefix + '-info-effect').innerText = "";
+        return;
+    }
+
+    // [New] 新增消耗品(道具)的顯示邏輯
+    if (type === 'material') {
+        document.getElementById(prefix + '-info-name').innerHTML = `<span style="color:#d4af37">${def.name}</span>`;
+        document.getElementById(prefix + '-meta-row').innerHTML = `<span class="type-badge" style="border-color:#d4af37; color:#d4af37;">消耗品</span>`;
+        document.getElementById(prefix + '-info-desc').innerText = def.desc;
+        document.getElementById(prefix + '-info-effect').innerText = "此道具會自動計入鍛造介面，點擊洗孔/洗鏈按鈕時將優先消耗此道具而非金幣。";
         return;
     }
 

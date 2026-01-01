@@ -161,26 +161,48 @@ function updateEnemies(dt) {
     enemies = enemies.filter(e => e);
 }
 
+// --- [修改] enemySystem.js ---
+
+// --- [修改] enemySystem.js ---
+
 function handleEnemyDeath(e, i) {
     player.kills++;
     player.xp += e.def.xp;
     if(player.xp >= player.nextLvlXp) levelUp();
 
     let rng = Math.random();
+    // 根據稀有度決定掉落倍率 (普通=1, 藍色=2, 黃色=5)
     let dropBonus = (e.rarity === 'rare' ? 5 : (e.rarity === 'magic' ? 2 : 1));
     
-    if(rng < (0.008 * dropBonus) + (currentWave*0.001)) pickUpEquipment();
-    else if(rng < 0.35 * dropBonus) player.gold += (10 + Math.floor(currentWave*2)) * dropBonus;
+    // --- 1. 基礎掉落 (裝備 或 金幣) ---
+    // 這部分保持原始互斥邏輯，確保經濟平衡
+    if(rng < (0.008 * dropBonus) + (currentWave*0.001)) {
+        pickUpEquipment();
+    }
+    else if(rng < 0.35 * dropBonus) {
+        player.gold += (10 + Math.floor(currentWave*2)) * dropBonus;
+    }
+
+    // --- 2. 特殊道具掉落 (獨立判定) ---
+    // 修改為獨立的 if 判斷，讓一隻怪有機會同時掉落多種道具
+
+    // 鏈接器 (原始設定: 總機率2%中的60% = 1.2%)
+    if(Math.random() < 0.05 * dropBonus) {
+        addMaterialToInventory('linker');
+    }
+
+    // 打孔鑽 (原始設定: 總機率2%中的40% = 0.8%)
+    if(Math.random() < 0.05 * dropBonus) {
+        addMaterialToInventory('socket_drill');
+    }
 
     spawnParticles(e.x, e.y, 8, e.def.color);
     
-    // [Fix] 自爆怪死亡時邏輯修正
+    // 自爆怪死亡時的殘骸邏輯
     if(e.def.ai === 'volatile') {
-        // 不再立即爆炸造成傷害，而是留下一個 "殘骸炸彈" (volatile_remnant)
-        // 延遲 1.0 秒後才爆炸，給玩家反應時間
         projectiles.push({
             x: e.x, y: e.y, vx:0, vy:0,
-            life: 1.0, // 延遲時間
+            life: 1.0, 
             size: e.size * 1.5,
             type: 'volatile_remnant', 
             dmg: e.dmg,

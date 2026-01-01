@@ -133,8 +133,14 @@ function confirmLevelUp() {
     closeLevelUp();
 }
 
+// --- 貼在 levelUpSystem.js 中，替換原本的 closeLevelUp 函式 ---
+
 function closeLevelUp() { 
     document.getElementById('levelup-modal').style.display='none'; 
+    
+    // [Fix] 強制隱藏暫停遮罩，防止升級結束後卡在暫停畫面
+    document.getElementById('pause-overlay').style.display = 'none';
+
     document.getElementById('joystick-area').style.display='block';
     gameState = 'PLAY';
     lastTime = performance.now();

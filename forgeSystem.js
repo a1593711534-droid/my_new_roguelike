@@ -3,6 +3,8 @@
 // [Patch] Revised UI: Fusion Multi-select, No Group Check, Destroy on Fail
 // [Patch] Fixed Socket Click Interaction
 
+// --- [修改] forgeSystem.js ---
+
 function renderForge() {
     const sel = document.getElementById('equipment-list-v'); sel.innerHTML = '';
     const statusHeader = document.getElementById('forge-status-header');
@@ -110,6 +112,40 @@ function renderForge() {
     statusHeader.innerText = targetName;
     statusHeader.style.color = (forgeState.mode === 'inventory') ? '#ffd700' : '#888';
     statusHeader.style.borderColor = (forgeState.mode === 'inventory') ? '#ffd700' : '#333';
+
+    // [New] 更新洗孔/洗鏈按鈕文字與狀態
+    const btnSocket = document.querySelector("button[onclick=\"forgeAction('socket')\"]");
+    const btnLink = document.querySelector("button[onclick=\"forgeAction('link')\"]");
+    
+    // 計算背包中的道具數量
+    let drillCount = player.inventory.filter(i => i.def && i.def.id === 'socket_drill').length;
+    let linkerCount = player.inventory.filter(i => i.def && i.def.id === 'linker').length;
+
+    if(btnSocket) {
+        if(drillCount > 0) {
+            btnSocket.innerText = `洗孔 (免費 x${drillCount})`;
+            btnSocket.style.borderColor = '#00ff00';
+            btnSocket.style.color = '#00ff00';
+        } else {
+            btnSocket.innerText = `洗孔 $100`;
+            btnSocket.style.borderColor = '#555'; 
+            btnSocket.style.color = '#ddd'; // 回復預設樣式
+            if(btnSocket.classList.contains('btn')) btnSocket.style.color = ''; // 若有CSS class控制，清除inline style
+        }
+    }
+    
+    if(btnLink) {
+        if(linkerCount > 0) {
+            btnLink.innerText = `洗鏈 (免費 x${linkerCount})`;
+            btnLink.style.borderColor = '#00ff00';
+            btnLink.style.color = '#00ff00';
+        } else {
+            btnLink.innerText = `洗鏈 $80`;
+            btnLink.style.borderColor = '#555';
+            btnLink.style.color = '#ddd';
+            if(btnLink.classList.contains('btn')) btnLink.style.color = '';
+        }
+    }
 
     const area = document.getElementById('socket-area'); area.innerHTML = '';
     const btnUnsocket = document.getElementById('btn-unsocket-gem');
@@ -399,37 +435,78 @@ function unsocketItem() {
     }
 }
 
+// --- [修改] forgeSystem.js ---
+
 function forgeAction(type) {
     let eq = getTargetItem();
     if(!eq) return;
 
     if(type==='socket') {
-        if(player.gold < 100) { showToast("金幣不足"); return; }
-        let maxS = eq.def.maxSockets;
-        player.gold -= 100;
-        eq.sockets.forEach(s => { 
-            if(s.item) { s.item.timestamp = Date.now(); player.inventory.push(s.item); }
-        });
-        
-        let n = Math.floor(Math.random() * maxS) + 1;
-        if(Math.random() < 0.1) n = maxS;
-
-        eq.sockets=[]; for(let k=0; k<n; k++) eq.sockets.push({item:null});
-        eq.links=[]; for(let k=0; k<n-1; k++) if(Math.random()<0.5) eq.links.push([k,k+1]);
-        showToast(`洗孔完成: ${n}孔`);
+        // [New] 檢查是否有打孔道具
+        let drills = player.inventory.filter(i => i.def && i.def.id === 'socket_drill');
+        if(drills.length > 0) {
+            // 消耗道具
+            let usedItem = drills[0];
+            let idx = player.inventory.indexOf(usedItem);
+            if(idx > -1) player.inventory.splice(idx, 1);
+            showToast("已使用高能雷射鑽!");
+            
+            // 執行洗孔邏輯 (免費)
+            performSocketReset(eq);
+        } else {
+            // 消耗金幣
+            if(player.gold < 100) { showToast("金幣不足"); return; }
+            player.gold -= 100;
+            performSocketReset(eq);
+        }
     } else {
-        if(player.gold < 80) { showToast("金幣不足"); return; }
-        player.gold -= 80;
-        eq.links=[];
-        for(let k=0; k<eq.sockets.length-1; k++) if(Math.random()<0.6) eq.links.push([k,k+1]);
-        showToast("鏈路重置");
+        // [New] 檢查是否有鏈接道具
+        let linkers = player.inventory.filter(i => i.def && i.def.id === 'linker');
+        if(linkers.length > 0) {
+            // 消耗道具
+            let usedItem = linkers[0];
+            let idx = player.inventory.indexOf(usedItem);
+            if(idx > -1) player.inventory.splice(idx, 1);
+            showToast("已使用納米鏈接器!");
+            
+            // 執行洗鏈邏輯 (免費)
+            performLinkReset(eq);
+        } else {
+             // 消耗金幣
+             if(player.gold < 80) { showToast("金幣不足"); return; }
+             player.gold -= 80;
+             performLinkReset(eq);
+        }
     }
     
+    // 更新介面
     document.getElementById('shop-gold-display').innerText = player.gold;
     forgeState.selectedSocketIdx = -1;
     updateInfoPanel(null, null);
     renderForge();
     renderInventoryStrip();
+}
+
+// 輔助函式：執行洗孔
+function performSocketReset(eq) {
+    let maxS = eq.def.maxSockets;
+    eq.sockets.forEach(s => { 
+        if(s.item) { s.item.timestamp = Date.now(); player.inventory.push(s.item); }
+    });
+    
+    let n = Math.floor(Math.random() * maxS) + 1;
+    if(Math.random() < 0.1) n = maxS;
+
+    eq.sockets=[]; for(let k=0; k<n; k++) eq.sockets.push({item:null});
+    eq.links=[]; for(let k=0; k<n-1; k++) if(Math.random()<0.5) eq.links.push([k,k+1]);
+    showToast(`洗孔完成: ${n}孔`);
+}
+
+// 輔助函式：執行洗鏈
+function performLinkReset(eq) {
+    eq.links=[];
+    for(let k=0; k<eq.sockets.length-1; k++) if(Math.random()<0.6) eq.links.push([k,k+1]);
+    showToast("鏈路重置");
 }
 
 // [修改] 融合區點擊主體邏輯 (4a)

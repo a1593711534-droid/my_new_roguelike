@@ -642,7 +642,7 @@ function fireElement(elDef, level, supports) {
             }
 
             let spd = 10 * velocityScale;
-            let lifeTime = 0.8 * durationScale; 
+            let lifeTime = 0.35 * durationScale; 
 
             projectiles.push({
                 x: player.x, y: player.y, 
