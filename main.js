@@ -129,7 +129,7 @@ function resize() {
 // 初始裝備改為 main_1h_generic
 
 function startGame(elId) {
-    player.gold = 999999; 
+    player.gold = 0; 
     player.level = 1;
     player.xp = 0;
     player.nextLvlXp = 50;
