@@ -113,13 +113,18 @@ function renderForge() {
     statusHeader.style.color = (forgeState.mode === 'inventory') ? '#ffd700' : '#888';
     statusHeader.style.borderColor = (forgeState.mode === 'inventory') ? '#ffd700' : '#333';
 
-    // [New] 更新洗孔/洗鏈按鈕文字與狀態
+    // [New] 更新洗孔/洗鏈按鈕文字與狀態 (改為計算 quantity 總和)
     const btnSocket = document.querySelector("button[onclick=\"forgeAction('socket')\"]");
     const btnLink = document.querySelector("button[onclick=\"forgeAction('link')\"]");
     
-    // 計算背包中的道具數量
-    let drillCount = player.inventory.filter(i => i.def && i.def.id === 'socket_drill').length;
-    let linkerCount = player.inventory.filter(i => i.def && i.def.id === 'linker').length;
+    // 計算背包中的道具數量 (加總 quantity)
+    let drillCount = player.inventory
+        .filter(i => i.def && i.def.id === 'socket_drill')
+        .reduce((acc, curr) => acc + (curr.quantity || 1), 0);
+        
+    let linkerCount = player.inventory
+        .filter(i => i.def && i.def.id === 'linker')
+        .reduce((acc, curr) => acc + (curr.quantity || 1), 0);
 
     if(btnSocket) {
         if(drillCount > 0) {
@@ -129,8 +134,8 @@ function renderForge() {
         } else {
             btnSocket.innerText = `洗孔 $100`;
             btnSocket.style.borderColor = '#555'; 
-            btnSocket.style.color = '#ddd'; // 回復預設樣式
-            if(btnSocket.classList.contains('btn')) btnSocket.style.color = ''; // 若有CSS class控制，清除inline style
+            btnSocket.style.color = '#ddd'; 
+            if(btnSocket.classList.contains('btn')) btnSocket.style.color = ''; 
         }
     }
     
@@ -437,6 +442,7 @@ function unsocketItem() {
 
 // --- [修改] forgeSystem.js ---
 
+// [修改] 執行洗孔/洗鏈操作 (消耗道具時扣除 quantity)
 function forgeAction(type) {
     let eq = getTargetItem();
     if(!eq) return;
@@ -445,10 +451,19 @@ function forgeAction(type) {
         // [New] 檢查是否有打孔道具
         let drills = player.inventory.filter(i => i.def && i.def.id === 'socket_drill');
         if(drills.length > 0) {
-            // 消耗道具
+            // 消耗道具 (優先使用第一個找到的堆疊)
             let usedItem = drills[0];
-            let idx = player.inventory.indexOf(usedItem);
-            if(idx > -1) player.inventory.splice(idx, 1);
+            
+            // 扣除數量
+            if (!usedItem.quantity) usedItem.quantity = 1; // 防呆
+            usedItem.quantity--;
+            
+            // 如果數量歸零，從背包移除
+            if (usedItem.quantity <= 0) {
+                let idx = player.inventory.indexOf(usedItem);
+                if(idx > -1) player.inventory.splice(idx, 1);
+            }
+            
             showToast("已使用高能雷射鑽!");
             
             // 執行洗孔邏輯 (免費)
@@ -465,8 +480,17 @@ function forgeAction(type) {
         if(linkers.length > 0) {
             // 消耗道具
             let usedItem = linkers[0];
-            let idx = player.inventory.indexOf(usedItem);
-            if(idx > -1) player.inventory.splice(idx, 1);
+            
+            // 扣除數量
+            if (!usedItem.quantity) usedItem.quantity = 1; // 防呆
+            usedItem.quantity--;
+
+            // 如果數量歸零，從背包移除
+            if (usedItem.quantity <= 0) {
+                let idx = player.inventory.indexOf(usedItem);
+                if(idx > -1) player.inventory.splice(idx, 1);
+            }
+
             showToast("已使用納米鏈接器!");
             
             // 執行洗鏈邏輯 (免費)

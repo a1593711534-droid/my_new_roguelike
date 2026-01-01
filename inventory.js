@@ -283,10 +283,24 @@ function sortInventory(items, category) {
 
 // --- [修改] inventory.js ---
 
+// [修改] 渲染背包列表 (顯示堆疊數量)
 function renderInventoryStrip() {
     let actives = player.inventory.filter(i => i.type === 'active');
     let supports = player.inventory.filter(i => i.type === 'support');
-    let equips = player.inventory.filter(i => i.slotId); 
+    let equips = player.inventory.filter(i => i.slotId && i.type !== 'material'); // 排除 material 避免混淆，雖然 material slotId 是 'material'
+    let materials = player.inventory.filter(i => i.type === 'material'); // [New] 獨立抓出材料以便排序或處理(如果需要)
+
+    // 注意：原本的分類邏輯中，materials 因為 slotId='material' 可能會被歸類到 equips，
+    // 但下方的渲染邏輯是依照 actives/supports/equips 三個容器去塞的。
+    // 原本的代碼邏輯中，material 是沒有專屬容器的，通常會因為有 slotId 而跑進 inv-equip-list，
+    // 或者因為 filter 沒抓到而沒顯示。
+    // 根據您原始代碼的邏輯，equips 是 filter(i => i.slotId)。
+    // 因為 createMaterialItem 給了 slotId: 'material'，所以它會出現在裝備頁籤。
+    // 為了保持一致，我們繼續讓它顯示在裝備頁籤，或者您可以根據需求改動。
+    // 這裡我們維持它在 equips 陣列中 (因為它有 slotId)。
+    
+    // 重新獲取 equips 包含 material
+    equips = player.inventory.filter(i => i.slotId);
 
     sortInventory(actives, 'active');
     sortInventory(supports, 'support');
@@ -341,9 +355,16 @@ function renderInventoryStrip() {
             let color = item.type === 'active' ? '#f55' : '#55f';
             div.innerHTML += `<span style="color:${color}; font-weight:bold; font-family:'Orbitron';">${item.def.s}</span><span style="font-size:9px; color:#aaa;">Lv${item.level}</span>`;
         } else if (item.type === 'material') {
-            // [New] 道具的渲染樣式
+            // [New] 道具的渲染樣式 (包含堆疊數量顯示)
             div.style.borderColor = '#d4af37';
-            div.innerHTML += `<span class="inv-icon">${item.def.icon}</span><span style="font-size:9px; color:#aaa;">${item.def.name}</span>`;
+            
+            // 構建數量標籤
+            let qtyTag = '';
+            if (item.quantity && item.quantity > 1) {
+                qtyTag = `<span style="position:absolute; bottom:2px; right:2px; background:rgba(0,0,0,0.7); color:#fff; font-size:9px; padding:0 3px; border-radius:4px; font-weight:bold; border:1px solid #555;">x${item.quantity}</span>`;
+            }
+
+            div.innerHTML += `<span class="inv-icon">${item.def.icon}</span><span style="font-size:9px; color:#aaa;">${item.def.name}</span>${qtyTag}`;
         } else {
             let borderColor = '#444';
             if(item.def.maxSockets >= 6) borderColor = '#aa8800';
@@ -428,7 +449,7 @@ function renderInventoryStrip() {
 
 // --- [新增] inventory.js 底部 ---
 
-// 建立特殊材料道具 (洗鏈/洗孔)
+// [修改] 建立特殊材料道具 (初始化 quantity)
 function createMaterialItem(typeKey) {
     let def = {};
     if(typeKey === 'linker') {
@@ -445,15 +466,27 @@ function createMaterialItem(typeKey) {
         sockets: [], // 保持結構一致
         links: [],
         level: 1,
+        quantity: 1, // [New] 新增堆疊數量屬性
         timestamp: Date.now()
     };
 }
 
-// 加入材料到背包
+// [修改] 加入材料到背包 (實作堆疊邏輯)
 function addMaterialToInventory(typeKey) {
-    let item = createMaterialItem(typeKey);
-    player.inventory.push(item);
-    showToast(`獲得道具: ${item.def.name}`);
+    // 檢查背包中是否已經有同類型的道具
+    let existingItem = player.inventory.find(i => i.type === 'material' && i.def.id === typeKey);
+
+    if (existingItem) {
+        // 如果有，堆疊數量 +1
+        if (!existingItem.quantity) existingItem.quantity = 1; // 防呆
+        existingItem.quantity++;
+        showToast(`獲得道具: ${existingItem.def.name} (x${existingItem.quantity})`);
+    } else {
+        // 如果沒有，創建新的
+        let item = createMaterialItem(typeKey);
+        player.inventory.push(item);
+        showToast(`獲得道具: ${item.def.name}`);
+    }
     
     // 若介面開啟中，即時更新
     if(gameState === 'SHOP') {
