@@ -375,6 +375,9 @@ function renderGearViewerSlots() {
 }
 
 // 5. [New] 渲染 [背包] 網格
+// [修改] uiHelpers.js
+// 更新 renderGearViewerInventory 以支援新武器類型的排序顯示
+
 function renderGearViewerInventory() {
     const container = document.getElementById('gv-inventory-area');
     if(!container) return;
@@ -387,10 +390,22 @@ function renderGearViewerInventory() {
 
     // 複製並排序 (裝備 -> 主動 -> 輔助)
     let sortedInv = [...player.inventory].sort((a, b) => {
-        let typeOrder = { 'equipment': 1, 'main_1h': 1, 'main_2h': 1, 'active': 2, 'support': 3 };
-        let ta = a.slotId ? 'equipment' : a.type; // 處理裝備類型的判斷
+        // [Modified] 更新排序權重，加入新類型
+        let typeOrder = { 
+            'equipment': 1, 
+            'main_1h_melee': 1, 'main_1h_generic': 1, 'main_1h_ranged': 1,
+            'main_2h_melee': 1, 'main_2h_generic': 1, 'main_2h_ranged': 1,
+            'active': 2, 
+            'support': 3 
+        };
+        // 若找不到類型，預設 1 (視為通用裝備)
+        let ta = a.slotId ? 'equipment' : a.type; 
         let tb = b.slotId ? 'equipment' : b.type;
-        return (typeOrder[ta] || 99) - (typeOrder[tb] || 99);
+        
+        let orderA = typeOrder[ta] !== undefined ? typeOrder[ta] : (a.type.includes('main') ? 1 : 99);
+        let orderB = typeOrder[tb] !== undefined ? typeOrder[tb] : (b.type.includes('main') ? 1 : 99);
+        
+        return orderA - orderB;
     });
 
     sortedInv.forEach(item => {
@@ -402,7 +417,8 @@ function renderGearViewerInventory() {
         let subInfo = '';
         let color = '#fff';
 
-        if(item.slotId || item.type === 'equipment' || item.type === 'main_1h' || item.type === 'main_2h') {
+        // [Modified] 判斷是否為裝備 (包含新類型)
+        if(item.slotId || item.type === 'equipment' || item.type.includes('main')) {
             // 裝備
             icon = item.def.icon;
             name = item.def.name;

@@ -1,7 +1,10 @@
 // --- weaponSystem.js ---
 // 武器發射邏輯與數值計算
 
-function fireElement(elDef, level, supports) {
+// [修改] weaponSystem.js
+// 增加 weaponStats 參數，套用武器的傷害倍率與暴擊率
+
+function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit: 0 }) {
     let type = elDef.attack.type;
     
     let bonusLevels = 0;
@@ -22,7 +25,10 @@ function fireElement(elDef, level, supports) {
     let velocityScale = 1;
     let durationScale = 1; 
     let areaScale = 1;
-    let critChance = 0.05; 
+    
+    // [修改] 暴擊率加上武器加成
+    let critChance = 0.05 + (weaponStats.crit || 0); 
+    
     let projCount = 1;
     let speedMod = 1; 
     
@@ -39,7 +45,9 @@ function fireElement(elDef, level, supports) {
     let corpseExplodeDmgScale = 0; 
     let repeatCount = 0; // Multistrike 支援
 
-    let dmgMultiplier = 1.0; 
+    // [修改] 傷害倍率乘上武器加成
+    let dmgMultiplier = 1.0 * (weaponStats.dmgMult || 1.0); 
+
     let nativeMult = elDef.dmgMult || 1.0;
     let nativeArea = elDef.areaRatio || 1.0;
 

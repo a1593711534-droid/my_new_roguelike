@@ -125,6 +125,9 @@ function resize() {
     CANVAS.width = SCREEN_W; CANVAS.height = SCREEN_H;
 }
 
+// [修改] main.js
+// 初始裝備改為 main_1h_generic
+
 function startGame(elId) {
     player.gold = 999999; 
     player.level = 1;
@@ -142,8 +145,8 @@ function startGame(elId) {
 
     currentWave = 1;
     
-    // [修改] 創建初始裝備 (主手單手杖)
-    let startWeapon = createEquipmentInstance('main_1h');
+    // [修改] 創建初始裝備 (單手通用)
+    let startWeapon = createEquipmentInstance('main_1h_generic');
     startWeapon.def.name = "新手短杖";
     let elDef = ELEMENTS_DB.find(e => e.id === elId);
     startWeapon.sockets[0].item = createInvItem(elDef, 1);
@@ -330,6 +333,9 @@ function loop(timestamp) {
     requestAnimationFrame(loop);
 }
 
+// [修改] main.js
+// 在 update 中加入全域近戰限制檢查 (blockMelee)，並將武器數值傳入 fireElement
+
 function update(dt) {
     // 0. Dash & Cooldown Logic
     if (player.dashCooldown > 0) {
@@ -339,6 +345,22 @@ function update(dt) {
     // Input Check for Dash (PC Spacebar)
     if (keys.space) {
         tryDash();
+    }
+
+    // [New] 檢查主手武器狀態 (全域近戰限制 & 數值讀取)
+    let mainWeapon = player.equipment[4];
+    let meleeBan = false;
+    let weaponStats = { dmgMult: 1.0, speedMult: 1.0, crit: 0 };
+
+    if(mainWeapon) {
+        // 如果是遠程/非近戰武器，全域禁止近戰技能
+        if(mainWeapon.type === 'main_1h_ranged' || mainWeapon.type === 'main_2h_ranged') {
+            meleeBan = true;
+        }
+        // 讀取武器數值
+        if(mainWeapon.stats) {
+            weaponStats = mainWeapon.stats;
+        }
     }
 
     // 1. Player Movement
@@ -401,6 +423,12 @@ function update(dt) {
 
         eq.sockets.forEach((s, sIdx) => {
             if(s.item && s.item.def.type === 'active') {
+                
+                // [New] 檢查是否被全域禁止近戰 (如果該技能標籤包含 '近戰')
+                if(meleeBan && s.item.def.tags && s.item.def.tags.includes('近戰')) {
+                    return; // 跳過此技能
+                }
+
                 if(typeof s.item.timer === 'undefined') s.item.timer = 0;
                 s.item.timer -= dt * 60; 
 
@@ -431,10 +459,15 @@ function update(dt) {
                         }
                     });
 
-                    fireElement(s.item.def, s.item.level, supports);
+                    // [Modified] 傳入 weaponStats 給 fireElement 計算傷害與暴擊
+                    fireElement(s.item.def, s.item.level, supports, weaponStats);
 
                     baseCooldown /= speedMod; 
                     baseCooldown /= (1 + cdrMod);
+                    
+                    // [New] 套用武器攻速倍率 (SpeedMult 越高，CD 越短)
+                    baseCooldown /= weaponStats.speedMult;
+
                     s.item.timer = baseCooldown;
                 }
             }

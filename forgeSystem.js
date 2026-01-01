@@ -5,6 +5,9 @@
 
 // --- [修改] forgeSystem.js ---
 
+// [修改] forgeSystem.js
+// 更新對於雙手武器的判斷 (改用 includes('main_2h'))，確保 UI 鎖定正確
+
 function renderForge() {
     const sel = document.getElementById('equipment-list-v'); sel.innerHTML = '';
     const statusHeader = document.getElementById('forge-status-header');
@@ -21,7 +24,8 @@ function renderForge() {
         let isPendingThisSlot = (forgeState.pendingEquip && forgeState.pendingEquip.slotIdx === idx);
 
         let isLocked = false;
-        if(slotDef.id === 'off' && player.equipment[4] && player.equipment[4].type === 'main_2h') {
+        // [Modified] 檢查是否為主手裝備了任何類型的雙手武器
+        if(slotDef.id === 'off' && player.equipment[4] && player.equipment[4].type.includes('main_2h')) {
             isLocked = true;
             div.classList.add('locked');
             div.innerHTML = `<span style="font-size:12px; color:#555;">🚫</span>`;
@@ -52,8 +56,9 @@ function renderForge() {
                         // 檢查部位是否符合
                         let canEquip = false;
                         if (invItem.slotId === slotDef.id) canEquip = true;
+                        // [Modified] 修正主手武器判定 (包含新類型)
                         if (invItem.slotId === 'main' && slotDef.id === 'main') canEquip = true;
-                        if (slotDef.id === 'off' && invItem.type === 'main_1h') canEquip = true;
+                        if (slotDef.id === 'off' && invItem.type.includes('main_1h')) canEquip = true;
 
                         if (canEquip) {
                             if (!player.equipment[idx]) {
@@ -362,6 +367,9 @@ function socketClick(idx) {
     }
 }
 
+// [修改] forgeSystem.js
+// 更新裝備替換邏輯，修正雙手武器佔用副手的判定字串
+
 function equipGear(slotIdx, invItem) {
     let invIdx = player.inventory.findIndex(i => i.uuid === invItem.uuid);
     if(invIdx === -1) return;
@@ -369,7 +377,8 @@ function equipGear(slotIdx, invItem) {
 
     let oldEquip = player.equipment[slotIdx];
     
-    if(invItem.type === 'main_2h') {
+    // [Modified] 雙手武器佔用判斷 (main_2h 開頭)
+    if(invItem.type.includes('main_2h')) {
         if(oldEquip) player.inventory.push(oldEquip);
         let offhand = player.equipment[5];
         if(offhand) {
@@ -379,7 +388,8 @@ function equipGear(slotIdx, invItem) {
         }
     } 
     else if (slotIdx === 5) { 
-        if(player.equipment[4] && player.equipment[4].type === 'main_2h') {
+        // [Modified] 如果主手已經裝備了雙手武器
+        if(player.equipment[4] && player.equipment[4].type.includes('main_2h')) {
             player.inventory.push(player.equipment[4]);
             player.equipment[4] = null;
             showToast("卸下雙手武器以裝備副手");

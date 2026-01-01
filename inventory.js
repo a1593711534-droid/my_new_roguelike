@@ -44,6 +44,10 @@ function createInvItem(def, lvl=null) {
     }; 
 }
 
+// [修改] inventory.js
+// 新增 6 種武器類型定義，設定不同的基礎傷害、攻速與暴擊率
+// 單手: 3孔, 雙手: 6孔
+
 function createEquipmentInstance(typeStr) {
     let slotType = 'main'; 
     let maxSockets = 3;
@@ -51,13 +55,49 @@ function createEquipmentInstance(typeStr) {
     let tierName = "標準";
     let icon = "📦";
 
+    // 預設武器數值 (防具為預設值)
+    // dmgMult: 傷害倍率, speedMult: 攻速倍率(冷卻縮減), crit: 暴擊率加成
+    let stats = { dmgMult: 1.0, speedMult: 1.0, crit: 0 };
+
     if(typeStr === 'head') { slotType='head'; maxSockets=4; name="戰術頭盔"; icon='⛑️'; }
     if(typeStr === 'body') { slotType='body'; maxSockets=6; name="納米裝甲"; icon='👕'; }
     if(typeStr === 'gloves') { slotType='gloves'; maxSockets=4; name="動力手套"; icon='🧤'; }
     if(typeStr === 'legs') { slotType='legs'; maxSockets=4; name="外骨骼"; icon='👢'; }
-    if(typeStr === 'main_1h') { slotType='main'; maxSockets=3; name="單手劍"; icon='⚔️'; }
-    if(typeStr === 'main_2h') { slotType='main'; maxSockets=6; name="雙手巨劍"; icon='🗡️'; tierName="重型"; }
     if(typeStr === 'offhand') { slotType='off'; maxSockets=3; name="能量盾"; icon='🛡️'; }
+
+    // --- 單手武器 (Max 3孔, 攻速快, 傷害較低) ---
+    // (a) 單手近戰: 高攻速, 正常暴率
+    if(typeStr === 'main_1h_melee') { 
+        slotType='main'; maxSockets=3; name="單手戰刃"; icon='⚔️'; tierName="近戰"; 
+        stats = { dmgMult: 0.9, speedMult: 1.2, crit: 0 };
+    }
+    // (b) 單手通用: 標準
+    if(typeStr === 'main_1h_generic') { 
+        slotType='main'; maxSockets=3; name="單手短杖"; icon='🪄'; tierName="通用";
+        stats = { dmgMult: 1.0, speedMult: 1.0, crit: 0 };
+    }
+    // (c) 單手非近戰: 高攻速, 額外暴率 (禁近戰)
+    if(typeStr === 'main_1h_ranged') { 
+        slotType='main'; maxSockets=3; name="單手手槍"; icon='🔫'; tierName="遠程";
+        stats = { dmgMult: 0.9, speedMult: 1.1, crit: 0.05 };
+    }
+
+    // --- 雙手武器 (Max 6孔, 攻速慢, 傷害較高) ---
+    // (d) 雙手近戰: 高傷害, 低攻速
+    if(typeStr === 'main_2h_melee') { 
+        slotType='main'; maxSockets=6; name="雙手巨劍"; icon='🗡️'; tierName="重型近戰";
+        stats = { dmgMult: 1.4, speedMult: 0.8, crit: 0 };
+    }
+    // (e) 雙手通用: 較高傷害, 稍慢攻速
+    if(typeStr === 'main_2h_generic') { 
+        slotType='main'; maxSockets=6; name="雙手法杖"; icon='🔱'; tierName="重型通用";
+        stats = { dmgMult: 1.2, speedMult: 0.9, crit: 0 };
+    }
+    // (f) 雙手非近戰: 高傷害, 額外暴率 (禁近戰)
+    if(typeStr === 'main_2h_ranged') { 
+        slotType='main'; maxSockets=6; name="重型加農"; icon='🚀'; tierName="重型遠程";
+        stats = { dmgMult: 1.3, speedMult: 0.75, crit: 0.05 };
+    }
 
     let def = { 
         icon: icon, 
@@ -76,9 +116,13 @@ function createEquipmentInstance(typeStr) {
         def: def, 
         sockets: [{item:null}], 
         links: [],
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        stats: stats // 儲存武器數值到實例中
     };
 }
+
+// [修改] inventory.js
+// 修改生成邏輯，確保 6 種武器出現機率均等
 
 function generateWeightedEquipment(waveBonus = 0) {
     let parts = ['head','body','gloves','legs','main','off'];
@@ -99,26 +143,32 @@ function generateWeightedEquipment(waveBonus = 0) {
     let icon = originalDef.icon;
     let maxS = originalDef.maxSockets;
     let typeStr = "equipment"; 
+    
+    // 預設數值
+    let stats = { dmgMult: 1.0, speedMult: 1.0, crit: 0 };
 
     if(selectedPart === 'head') name = "戰術頭盔";
     if(selectedPart === 'body') name = "納米裝甲";
     if(selectedPart === 'gloves') name = "動力手套";
     if(selectedPart === 'legs') name = "外骨骼";
-    if(selectedPart === 'off') name = "能量盾";
+    if(selectedPart === 'off') { name = "能量盾"; typeStr = "offhand"; }
     
     if(selectedPart === 'main') {
-        // [Fix] 將雙手武器機率從 10% 提升回 50%
-        // 這確保了在選中主手武器時，有一半機率是雙手巨劍 (模擬舊版 1/7 vs 1/7 的比例)
-        if(Math.random() < 0.5) {
-             name = "雙手巨劍";
-             tier = "重型";
-             icon = "🗡️";
-             maxS = 6;
-             typeStr = "main_2h";
-        } else {
-             name = "單手劍";
-             typeStr = "main_1h";
-        }
+        // [修改] 6 種武器類型，機率均等 (各 1/6)
+        let types = [
+            'main_1h_melee', 'main_1h_generic', 'main_1h_ranged',
+            'main_2h_melee', 'main_2h_generic', 'main_2h_ranged'
+        ];
+        typeStr = types[Math.floor(Math.random() * types.length)];
+        
+        // 為了取得正確的名稱、Tier、Icon、MaxSockets 和 Stats
+        // 我們暫時創建一個實例來複製其屬性 (保持邏輯一致性)
+        let temp = createEquipmentInstance(typeStr);
+        name = temp.def.name;
+        tier = temp.def.tier;
+        icon = temp.def.icon;
+        maxS = temp.def.maxSockets;
+        stats = temp.stats;
     }
 
     let safeDef = { 
@@ -138,8 +188,8 @@ function generateWeightedEquipment(waveBonus = 0) {
     for(let k=1; k<maxS; k++) {
         if(Math.random() < socketChance) sCount++;
     }
-    // 雙手武器至少 2 孔
-    if(typeStr === 'main_2h' && sCount < 2) sCount = 2;
+    // 雙手武器至少 2 孔 (包含所有 main_2h 開頭的類型)
+    if(typeStr.includes('main_2h') && sCount < 2) sCount = 2;
     if(sCount > maxS) sCount = maxS;
 
     for(let k=0; k<sCount; k++) sockets.push({item: null});
@@ -158,7 +208,8 @@ function generateWeightedEquipment(waveBonus = 0) {
         sockets: sockets,
         links: links,
         level: 1, 
-        timestamp: Date.now() 
+        timestamp: Date.now(),
+        stats: stats // 將數值寫入生成的裝備中
     };
 }
 
