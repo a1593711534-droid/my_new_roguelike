@@ -462,6 +462,29 @@ function displayGearDetail(item, type) {
     const desc = document.getElementById('gv-info-desc');
     const stats = document.getElementById('gv-info-stats');
 
+    // [New] 優先處理材料 (因為材料也有 slotId，原本會被誤判為 equipment)
+    if(item.type === 'material') {
+        title.innerText = item.def.name;
+        title.style.color = '#d4af37';
+        
+        // 顯示堆疊數量
+        let qty = item.quantity || 1;
+        badges.innerHTML = `<span class="tag-pill" style="background:#222; border:1px solid #d4af37; color:#d4af37;">擁有數量: ${qty}</span>`;
+        
+        typeTxt.innerHTML = `<span class="type-badge" style="border-color:#d4af37; color:#d4af37;">CONSUMABLE</span>`;
+        
+        desc.innerText = item.def.desc || "特殊消耗品。";
+        
+        // 顯示用途提示
+        stats.innerHTML = `
+            <div style="color:#aaa; font-size:12px;">
+                此道具可用於 <span style="color:#fff;">元素工坊</span>。<br>
+                進行洗孔或洗鏈時，系統將優先消耗此道具而非金幣。
+            </div>
+        `;
+        return;
+    }
+
     if(type === 'equipment') {
         title.innerText = item.def.name;
         title.style.color = item.def.maxSockets >= 6 ? '#ffd700' : (item.def.maxSockets >= 4 ? '#00ccff' : '#fff');

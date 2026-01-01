@@ -480,12 +480,14 @@ function addMaterialToInventory(typeKey) {
         // 如果有，堆疊數量 +1
         if (!existingItem.quantity) existingItem.quantity = 1; // 防呆
         existingItem.quantity++;
-        showToast(`獲得道具: ${existingItem.def.name} (x${existingItem.quantity})`);
+        // [Modified] 顯示當下獲得數量 (x1)，而非總數量
+        showToast(`獲得道具: ${existingItem.def.name} (x1)`);
     } else {
         // 如果沒有，創建新的
         let item = createMaterialItem(typeKey);
         player.inventory.push(item);
-        showToast(`獲得道具: ${item.def.name}`);
+        // [Modified] 顯示當下獲得數量 (x1)
+        showToast(`獲得道具: ${item.def.name} (x1)`);
     }
     
     // 若介面開啟中，即時更新
