@@ -130,6 +130,16 @@ function calculateEffectStats(def, level) {
              let speedLoss = 30; // 固定 30%
              text = `造成傷害 <span style="color:#00ff00">+${Math.round(val*100)}%</span> (More)<br>擊退距離大增<br>投射物速度 <span style="color:#ff5555">-${speedLoss}%</span>`;
         }
+        // [New Support] Tl: Thallium Decay
+        else if (def.effect.type === 'thallium_decay') {
+             val = base + (growthMult * growth);
+             text = `近戰命中時釋放毒雲<br>毒雲傷害 <span style="color:#00ff00">${Math.round(val*100)}%</span> (每秒)<br>持續 2 秒`;
+        }
+        // [New Support] Ar: Argon Nova
+        else if (def.effect.type === 'argon_nova') {
+             val = base + Math.floor(growthMult * 0.5); // 每2級多1顆
+             text = `投射物以 <span style="color:#00ffff">環狀新星</span> 發射<br>投射物數量 <span style="color:#00ff00">+${val}</span><br>造成傷害 <span style="color:#ff5555">-20%</span> (Less)`;
+        }
 
         return { text: text, subText: "" };
     }

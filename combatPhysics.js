@@ -179,6 +179,19 @@ function updateCombat(dt) {
             // 角度稍微擺動
             // p.angle += 0.1; 
         }
+        else if(p.type === 'astatine_scythe') {
+            // 鐮刀跟隨玩家移動，但保持相對角度
+            let dx = p.x - player.x;
+            let dy = p.y - player.y;
+            // 讓它稍微前進一點產生揮砍感
+            p.x += p.vx * dt * 60;
+            p.y += p.vy * dt * 60;
+        }
+        else if(p.type === 'cesium_fist') {
+            // 拳頭快速跟隨玩家並向前
+            p.x += p.vx * dt * 60;
+            p.y += p.vy * dt * 60;
+        }
         else if(p.type === 'boomerang') {
             if (p.returnState !== 1) {
                 p.vx *= (1 - 0.02 * (dt * 60));
@@ -631,6 +644,59 @@ function updateCombat(dt) {
                             // 這裡直接給予額外的一次性毒素傷害模擬 DoT
                             applyDamage(e, p.dmg * 0.3, false, 0, '#88ff00');
                         }
+                    }
+                    // [New Effect] Cs: Chain Lightning Trigger
+                    if(p.triggerChain) {
+                        // 產生一個離子閃電，從敵人位置射出，尋找下一個敵人
+                        let chainP = {
+                            x: e.x, y: e.y, vx: 0, vy: 0,
+                            life: 0.3, size: 2, dmg: p.chainDmg,
+                            type: 'ion_arc', color: '#88aaff',
+                            isCrit: p.isCrit, pierce: 0, knockback: 0,
+                            bounce: 2, // 彈跳2次
+                            chainRange: p.chainRange,
+                            hitList: [e] // 避免打到自己
+                        };
+                        // 立即尋找第一個彈跳目標給予速度，否則 ion_arc 邏輯會刪除它
+                        let target = null, minD = p.chainRange;
+                        targets.forEach(other => {
+                            if(other !== e) {
+                                let d = Math.hypot(other.x - e.x, other.y - e.y);
+                                if(d < minD) { minD = d; target = other; }
+                            }
+                        });
+                        if(target) {
+                            let ang = Math.atan2(target.y - e.y, target.x - e.x);
+                            chainP.vx = Math.cos(ang) * 15; chainP.vy = Math.sin(ang) * 15;
+                            projectiles.push(chainP);
+                        } else {
+                            // 沒目標就隨機射
+                            let ang = Math.random()*6.28;
+                            chainP.vx = Math.cos(ang) * 15; chainP.vy = Math.sin(ang) * 15;
+                            projectiles.push(chainP);
+                        }
+                    }
+
+                    // [New Effect] Tl: Thallium Cloud Spawn
+                    if(p.spawnCloudRatio && p.spawnCloudRatio > 0) {
+                         projectiles.push({
+                            x: e.x, y: e.y, vx: 0, vy: 0,
+                            life: 2.0, // 持續2秒
+                            size: 40 * (p.areaScale || 1), 
+                            dmg: p.dmg * p.spawnCloudRatio, // 傷害比例
+                            type: 'cloud', color: '#00ff00', // 重用 cloud 邏輯
+                            isCrit: false, pierce: 999, knockback: 0,
+                            hitTimers: new Map()
+                        });
+                    }
+
+                    // [New Effect] At: Astatine Pull (Vacuum)
+                    if(p.type === 'astatine_scythe') {
+                        // 強制吸入效果 (覆寫 knockback)
+                        let pullAng = Math.atan2(p.y - e.y, p.x - e.x); // 指向中心
+                        e.x += Math.cos(pullAng) * p.pullForce * 5;
+                        e.y += Math.sin(pullAng) * p.pullForce * 5;
+                        p.knockback = 0; // 確保不會被推開
                     }
                          let pCount = (p.isCrit?8:3) * (p.areaScale || 1);
                          spawnParticles(e.x,e.y, pCount, p.color);

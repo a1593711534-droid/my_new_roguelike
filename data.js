@@ -67,6 +67,10 @@ const ELEMENTS_DB = [
     // Po (84): 劇毒鞭笞 (Toxic Lash) - 中距離揮擊
     {id:84, s:'Po', cn:'釙', n:'Polonium', g:16, type:'active', desc:'【貧金屬】強烈的放射性毒素凝聚成鞭，揮擊前方扇形區域。', attack:{type:'whip', name:'劇毒鞭笞'}, tags:['近戰','範圍','毒'], dmgMult: 1.1, autoAim: true},
 
+    {id:55, s:'Cs', cn:'銫', n:'Cesium', g:1, type:'active', desc:'【鹼金屬】高活性電子躍遷，極快拳速擊打敵人，並在接觸瞬間釋放連鎖電流。', attack:{type:'cesium_fist', name:'銫光雷拳'}, tags:['近戰','雷','單體'], dmgMult: 0.8},
+
+    {id:85, s:'At', cn:'砈', n:'Astatine', g:17, type:'active', desc:'【鹵素】極稀有的放射性元素，揮舞巨大的虛空鐮刀，將周圍敵人強行吸入斬擊中心。', attack:{type:'astatine_scythe', name:'虛空鎌'}, tags:['近戰','範圍','持續'], dmgMult: 1.6},
+
 
     // --- 原有輔助 (Supports) - [數值重構] ---
     {id:3, s:'Li', cn:'鋰', n:'Lithium', g:1, type:'support', desc:'【鹼金屬】高活性的化學催化劑，以燃燒壽命為代價換取極限爆發。', effect:{type:'swiftness', base:0.30, growth:0.02}, supportTags:['持續']}, 
@@ -109,11 +113,13 @@ const ELEMENTS_DB = [
     // Te (52): 重型彈藥 (Heavy Ammo) - 僅限投射物
     {id:52, s:'Te', cn:'碲', n:'Tellurium', g:16, type:'support', desc:'【類金屬】增加彈頭質量與動能，強化衝擊力但犧牲飛行速度。', effect:{type:'heavy_ammo', base:0.3, growth:0.02}, supportTags:['投射物']},
 
+    {id:81, s:'Tl', cn:'鉈', n:'Thallium', g:13, type:'support', desc:'【貧金屬】劇毒重金屬，使近戰攻擊在命中點爆發出持續腐蝕的毒雲。', effect:{type:'thallium_decay', base:0.3, growth:0.02}, supportTags:['近戰']},
+
+    {id:18, s:'Ar', cn:'氬', n:'Argon', g:18, type:'support', desc:'【惰性氣體】均勻擴散特性。投射物不再向前方發射，而是以環狀新星(Nova)向四周爆發。', effect:{type:'argon_nova', base:2, growth:0}, supportTags:['投射物']},
+
 
     // --- Fillers ---
-    {id:55, s:'Cs', cn:'銫', n:'Cesium', g:1}, {id:81, s:'Tl', cn:'鉈', n:'Thallium', g:13},
-    {id:85, s:'At', cn:'砈', n:'Astatine', g:17},
-    {id:18, s:'Ar', cn:'氬', n:'Argon', g:18}
+    
 ];
 
 const STARTERS = [
@@ -136,7 +142,9 @@ const STARTERS = [
     { elId: 87, name: '鍅 (裂地)', icon: '🌋' },
     { elId: 88, name: '鐳 (懲擊)', icon: '✨' },
     { elId: 32, name: '鍺 (晶刺)', icon: '❄️' }, 
-    { elId: 84, name: '釙 (毒鞭)', icon: '🐍' }
+    { elId: 84, name: '釙 (毒鞭)', icon: '🐍' },
+    { elId: 55, name: '銫 (雷拳)', icon: '🥊' },
+    { elId: 85, name: '砈 (虛空)', icon: '🌑' }
 ];
 
 const SOCKET_POS = [{x:60,y:30},{x:140,y:30},{x:140,y:100},{x:60,y:100},{x:60,y:170},{x:140,y:170}];

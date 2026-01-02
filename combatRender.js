@@ -549,6 +549,64 @@ function drawCombatEffects() {
 
             CTX.restore();
         }
+        // [New Visual] Cs: Cesium Fist
+        else if(p.type === 'cesium_fist') {
+            CTX.save();
+            CTX.translate(p.x, p.y);
+            CTX.rotate(p.angle);
+            let progress = 1 - (p.life / p.maxLife);
+            
+            // 電光拳特效
+            CTX.shadowBlur = 15; CTX.shadowColor = '#00ffff';
+            CTX.fillStyle = 'rgba(200, 255, 255, 0.8)';
+            
+            // 畫一個衝擊波形狀
+            CTX.beginPath();
+            CTX.arc(10 + progress*20, 0, p.size * 0.6, 0, 6.28);
+            CTX.fill();
+            
+            // 閃電殘影
+            if(Math.random() < 0.5) {
+                CTX.strokeStyle = '#fff'; CTX.lineWidth = 2;
+                CTX.beginPath();
+                CTX.moveTo(0,0);
+                CTX.lineTo(p.size, (Math.random()-0.5)*20);
+                CTX.stroke();
+            }
+            CTX.restore();
+        }
+        // [New Visual] At: Astatine Scythe
+        else if(p.type === 'astatine_scythe') {
+            CTX.save();
+            CTX.translate(player.x, player.y); // 以玩家為軸心
+            CTX.rotate(p.angle);
+            
+            let progress = 1 - (p.life / p.maxLife);
+            CTX.globalAlpha = 1 - Math.pow(progress, 2);
+            
+            // 虛空黑紫色
+            let grd = CTX.createRadialGradient(0, 0, p.size*0.2, 0, 0, p.size);
+            grd.addColorStop(0, 'rgba(0,0,0,0)');
+            grd.addColorStop(0.6, 'rgba(50, 0, 80, 0.8)');
+            grd.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            
+            CTX.fillStyle = grd;
+            
+            // 繪製鐮刀弧形
+            CTX.beginPath();
+            CTX.arc(0, 0, p.size, -0.5, 0.5); // 弧度範圍
+            CTX.lineTo(0,0);
+            CTX.fill();
+            
+            // 鐮刀刀鋒 (亮紫)
+            CTX.strokeStyle = '#d0f'; CTX.lineWidth = 4;
+            CTX.shadowBlur = 20; CTX.shadowColor = '#f0f';
+            CTX.beginPath();
+            CTX.arc(0, 0, p.size * 0.9, -0.5, 0.5);
+            CTX.stroke();
+            
+            CTX.restore();
+        }
 
         CTX.globalAlpha = 1;
     });

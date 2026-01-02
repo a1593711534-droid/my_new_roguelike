@@ -5,6 +5,8 @@
 // 增加 weaponStats 參數，套用武器的傷害倍率與暴擊率
 
 function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit: 0 }) {
+    window.isArgonNova = false;
+    window.thalliumCloudRatio = 0;
     let type = elDef.attack.type;
     
     let bonusLevels = 0;
@@ -156,6 +158,21 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
             knockbackVal += (3 + pwr * 5);   // Huge Knockback bonus
             velocityScale *= (1 - 0.3);      // 30% Less Speed
         }
+        // [New Support] Ar: Argon Nova
+        if(sup.effect.type === 'argon_nova') {
+            let extraProj = base + Math.floor(growthMult * 0.5);
+            projCount += extraProj;
+            dmgMultiplier *= 0.8; // 20% Less Dmg balance
+            // 我們使用一個特殊標記，稍後在發射時改變角度邏輯
+            if(typeof isArgonNova === 'undefined') window.isArgonNova = false;
+            window.isArgonNova = true;
+        }
+        // [New Support] Tl: Thallium Decay
+        if(sup.effect.type === 'thallium_decay') {
+            let decayDmgRatio = base + (growthMult * growth);
+            if(typeof thalliumCloudRatio === 'undefined') window.thalliumCloudRatio = 0;
+            window.thalliumCloudRatio += decayDmgRatio;
+        }
     });
 
     let dmg = baseDmg * dmgMultiplier * nativeMult;
@@ -190,6 +207,10 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
 
     // Helper to spawn attacks (for Multistrike repeating)
     const spawnAttack = (projIndex, repeatIndex) => {
+        // [Argon Nova Logic Override]
+        if(window.isArgonNova && (type === 'projectile' || type === 'cryo' || type === 'cluster' || type === 'shotgun' || type === 'ion_arc' || type === 'heavy_slug' || type === 'corrosive_flask' || type === 'firework')) {
+            ang = (Math.PI * 2 / totalProj) * projIndex + (Math.random()*0.1); // 些微隨機偏移避免重疊感太重
+        }
         // 1. 投射物 (火球/氫)
         if(type === 'projectile') { 
             let t = getNearestEnemy();
@@ -844,6 +865,81 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
                 // 傳遞餘震機率
                 aftershockChance: aftershockChance,
                 aftershockDmg: finalDmg * 0.5
+            });
+        }
+        // [New Active] Cs: 銫光雷拳 (Cesium Flux-Fist)
+        else if(type === 'cesium_fist') {
+            let t = getNearestEnemy();
+            let baseAng = player.facing;
+            if(elDef.autoAim && t) baseAng = Math.atan2(t.y - player.y, t.x - player.x);
+            
+            // 拳擊範圍較短，攻速快(由 base cooldown 控制)，這裡處理特效與判定
+            let ang = baseAng;
+            if(totalProj > 1) {
+                let spread = 0.6;
+                let startAng = baseAng - spread/2;
+                ang = startAng + (spread / (totalProj-1)) * projIndex;
+            }
+            if(repeatCount > 0 && repeatIndex % 2 === 1) ang += 0.2;
+
+            let range = 50 * finalAreaMult; // 短射程
+            let lifeTime = 0.15; // 極短存在時間 (瞬間)
+
+            projectiles.push({
+                x: player.x, y: player.y,
+                vx: Math.cos(ang) * 6, vy: Math.sin(ang) * 6, // 稍微向前衝一點
+                angle: ang,
+                life: lifeTime, maxLife: lifeTime,
+                size: range, 
+                dmg: finalDmg,
+                type: 'cesium_fist', // 對應 Render
+                color: '#66ccff', // 電弧藍
+                isCrit: isCrit,
+                pierce: 999,
+                knockback: knockbackVal + 2,
+                hitList: [],
+                execute: executeThreshold,
+                corpseExplode: corpseExplodeChance, corpseDmg: finalDmg * corpseExplodeDmgScale,
+                // 特殊效果: 觸發連鎖閃電
+                triggerChain: true,
+                chainDmg: finalDmg * 0.6, // 閃電傷害為拳擊的 60%
+                chainRange: 200 * finalAreaMult,
+                // 支援 Tl 毒雲
+                spawnCloudRatio: window.thalliumCloudRatio || 0
+            });
+        }
+
+        // [New Active] At: 砈光虛空鎌 (Astatine Void-Scythe)
+        else if(type === 'astatine_scythe') {
+            let baseAng = player.facing;
+            let t = getNearestEnemy();
+            if(elDef.autoAim && t) baseAng = Math.atan2(t.y - player.y, t.x - player.x);
+
+            let ang = baseAng;
+            if(repeatCount > 0) ang += (Math.random()-0.5)*0.5;
+
+            // 鐮刀是大範圍持續判定
+            let lifeTime = 0.6; 
+            let size = 90 * finalAreaMult;
+
+            projectiles.push({
+                x: player.x, y: player.y,
+                vx: Math.cos(ang) * 3, vy: Math.sin(ang) * 3, // 緩慢推進
+                angle: ang,
+                life: lifeTime, maxLife: lifeTime,
+                size: size,
+                dmg: finalDmg, // 這是 DoT 或是高頻判定，這裡設為單次判定(hitList控制)
+                type: 'astatine_scythe',
+                color: '#220033', // 深虛空色
+                isCrit: isCrit,
+                pierce: 999,
+                knockback: 0, // 鐮刀是吸入，所以擊退設為0或負值在 Physics 處理
+                pullForce: 3.5, // 吸力強度
+                hitList: [],
+                execute: executeThreshold,
+                corpseExplode: corpseExplodeChance, corpseDmg: finalDmg * corpseExplodeDmgScale,
+                // 支援 Tl 毒雲
+                spawnCloudRatio: window.thalliumCloudRatio || 0
             });
         }
     };
