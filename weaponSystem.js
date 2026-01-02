@@ -207,22 +207,23 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
 
     // Helper to spawn attacks (for Multistrike repeating)
     const spawnAttack = (projIndex, repeatIndex) => {
-        // [Argon Nova Logic Override]
-        if(window.isArgonNova && (type === 'projectile' || type === 'cryo' || type === 'cluster' || type === 'shotgun' || type === 'ion_arc' || type === 'heavy_slug' || type === 'corrosive_flask' || type === 'firework')) {
-            ang = (Math.PI * 2 / totalProj) * projIndex + (Math.random()*0.1); // 些微隨機偏移避免重疊感太重
-        }
         // 1. 投射物 (火球/氫)
         if(type === 'projectile') { 
-            let t = getNearestEnemy();
-            let ang = Math.random()*6.28;
-            if(t) ang = Math.atan2(t.y-player.y, t.x-player.x);
-            
-            if(totalProj > 1) {
-                let spread = 0.4; 
-                let startAng = ang - spread/2;
-                ang = startAng + (spread / (totalProj > 1 ? totalProj-1 : 1)) * projIndex;
+            let ang;
+            // [FIX] Argon Nova 覆蓋
+            if (window.isArgonNova) {
+                ang = (Math.PI * 2 / totalProj) * projIndex;
             } else {
-                ang += (Math.random()-0.5)*0.1;
+                let t = getNearestEnemy();
+                ang = Math.random()*6.28;
+                if(t) ang = Math.atan2(t.y-player.y, t.x-player.x);
+                if(totalProj > 1) {
+                    let spread = 0.4; 
+                    let startAng = ang - spread/2;
+                    ang = startAng + (spread / (totalProj > 1 ? totalProj-1 : 1)) * projIndex;
+                } else {
+                    ang += (Math.random()-0.5)*0.1;
+                }
             }
 
             let baseSpeed = 12;
@@ -241,16 +242,21 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
         } 
         // 2. 冰凍 (氮)
         else if(type === 'cryo') { 
-            let t = getNearestEnemy();
-            let ang = Math.random()*6.28;
-            if(t) ang = Math.atan2(t.y-player.y, t.x-player.x);
-            
-            if(totalProj > 1) {
-                let spread = 0.5;
-                let startAng = ang - spread/2;
-                ang = startAng + (spread / (totalProj-1)) * projIndex;
+            let ang;
+            // [FIX] Argon Nova 覆蓋
+            if (window.isArgonNova) {
+                ang = (Math.PI * 2 / totalProj) * projIndex;
             } else {
-                 ang += (Math.random()-0.5)*0.2;
+                let t = getNearestEnemy();
+                ang = Math.random()*6.28;
+                if(t) ang = Math.atan2(t.y-player.y, t.x-player.x);
+                if(totalProj > 1) {
+                    let spread = 0.5;
+                    let startAng = ang - spread/2;
+                    ang = startAng + (spread / (totalProj-1)) * projIndex;
+                } else {
+                     ang += (Math.random()-0.5)*0.2;
+                }
             }
 
             let baseSpeed = 10;
@@ -394,16 +400,21 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
         }
         // 8. 集束炸彈 (鉀)
         else if(type === 'cluster') {
-            let t = getNearestEnemy();
-            let ang = Math.random()*6.28;
-            if(t) ang = Math.atan2(t.y-player.y, t.x-player.x);
-            
-            if(totalProj > 1) {
-                let spread = 0.6;
-                let startAng = ang - spread/2;
-                ang = startAng + (spread / (totalProj-1)) * projIndex;
+            let ang;
+            // [FIX] Argon Nova 覆蓋
+            if (window.isArgonNova) {
+                ang = (Math.PI * 2 / totalProj) * projIndex;
             } else {
-                ang += (Math.random()-0.5)*0.2;
+                let t = getNearestEnemy();
+                ang = Math.random()*6.28;
+                if(t) ang = Math.atan2(t.y-player.y, t.x-player.x);
+                if(totalProj > 1) {
+                    let spread = 0.6;
+                    let startAng = ang - spread/2;
+                    ang = startAng + (spread / (totalProj-1)) * projIndex;
+                } else {
+                    ang += (Math.random()-0.5)*0.2;
+                }
             }
             let baseSpeed = 10;
             let baseLife = 0.75; 
@@ -423,13 +434,19 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
         }
         // 9. 晶體霰彈 (矽)
         else if(type === 'shotgun') {
-            let baseAng = player.facing;
-            let t = getNearestEnemy();
-            if(t) baseAng = Math.atan2(t.y - player.y, t.x - player.x);
+            let ang;
+            // [FIX] Argon Nova 覆蓋
+            if (window.isArgonNova) {
+                ang = (Math.PI * 2 / totalProj) * projIndex;
+            } else {
+                let baseAng = player.facing;
+                let t = getNearestEnemy();
+                if(t) baseAng = Math.atan2(t.y - player.y, t.x - player.x);
 
-            let spread = 0.8; 
-            let startAng = baseAng - spread/2;
-            let ang = startAng + (spread / (totalProj-1)) * projIndex;
+                let spread = 0.8; 
+                let startAng = baseAng - spread/2;
+                ang = startAng + (spread / (totalProj-1)) * projIndex;
+            }
             
             let baseSpeed = 14;
             let baseLife = 0.4; 
@@ -479,14 +496,19 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
         }
         // 11. 離子閃電 (氙 Xe)
         else if(type === 'ion_arc') {
-            let t = getNearestEnemy();
-            let ang = Math.random()*6.28;
-            if(t) ang = Math.atan2(t.y-player.y, t.x-player.x);
-            
-            if(totalProj > 1) {
-                let spread = 0.6;
-                let startAng = ang - spread/2;
-                ang = startAng + (spread / (totalProj-1)) * projIndex;
+            let ang;
+            // [FIX] Argon Nova 覆蓋
+            if (window.isArgonNova) {
+                ang = (Math.PI * 2 / totalProj) * projIndex;
+            } else {
+                let t = getNearestEnemy();
+                ang = Math.random()*6.28;
+                if(t) ang = Math.atan2(t.y-player.y, t.x-player.x);
+                if(totalProj > 1) {
+                    let spread = 0.6;
+                    let startAng = ang - spread/2;
+                    ang = startAng + (spread / (totalProj-1)) * projIndex;
+                }
             }
 
             let baseSpeed = 18; 
@@ -511,14 +533,19 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
         }
         // 12. 重力坍縮 (鉛 Pb)
         else if(type === 'heavy_slug') {
-            let t = getNearestEnemy();
-            let ang = Math.random()*6.28;
-            if(t) ang = Math.atan2(t.y-player.y, t.x-player.x);
-            
-            if(totalProj > 1) {
-                let spread = 0.4;
-                let startAng = ang - spread/2;
-                ang = startAng + (spread / (totalProj-1)) * projIndex;
+            let ang;
+            // [FIX] Argon Nova 覆蓋
+            if (window.isArgonNova) {
+                ang = (Math.PI * 2 / totalProj) * projIndex;
+            } else {
+                let t = getNearestEnemy();
+                ang = Math.random()*6.28;
+                if(t) ang = Math.atan2(t.y-player.y, t.x-player.x);
+                if(totalProj > 1) {
+                    let spread = 0.4;
+                    let startAng = ang - spread/2;
+                    ang = startAng + (spread / (totalProj-1)) * projIndex;
+                }
             }
 
             let baseSpeed = 5; 
@@ -545,14 +572,19 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
         }
         // 13. 腐蝕燒瓶 (溴 Br)
         else if(type === 'corrosive_flask') {
-             let t = getNearestEnemy();
-             let ang = Math.random()*6.28;
-             if(t) ang = Math.atan2(t.y-player.y, t.x-player.x);
-             
-             if(totalProj > 1) {
-                 let spread = 0.5;
-                 let startAng = ang - spread/2;
-                 ang = startAng + (spread / (totalProj-1)) * projIndex;
+             let ang;
+             // [FIX] Argon Nova 覆蓋
+             if (window.isArgonNova) {
+                ang = (Math.PI * 2 / totalProj) * projIndex;
+             } else {
+                 let t = getNearestEnemy();
+                 ang = Math.random()*6.28;
+                 if(t) ang = Math.atan2(t.y-player.y, t.x-player.x);
+                 if(totalProj > 1) {
+                     let spread = 0.5;
+                     let startAng = ang - spread/2;
+                     ang = startAng + (spread / (totalProj-1)) * projIndex;
+                 }
              }
              let baseSpeed = 11;
              let baseLife = 0.7; 
@@ -575,15 +607,20 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
         }
         // 14. 鋇光煙火 (鋇 Ba)
         else if(type === 'firework') {
-            let t = getNearestEnemy();
-            let ang = Math.random()*6.28;
-            if(t) ang = Math.atan2(t.y-player.y, t.x-player.x);
-            
-            if(totalProj > 1) {
-                 let spread = 0.4;
-                 let startAng = ang - spread/2;
-                 ang = startAng + (spread / (totalProj-1)) * projIndex;
-             }
+            let ang;
+            // [FIX] Argon Nova 覆蓋
+            if (window.isArgonNova) {
+                ang = (Math.PI * 2 / totalProj) * projIndex;
+            } else {
+                let t = getNearestEnemy();
+                ang = Math.random()*6.28;
+                if(t) ang = Math.atan2(t.y-player.y, t.x-player.x);
+                if(totalProj > 1) {
+                     let spread = 0.4;
+                     let startAng = ang - spread/2;
+                     ang = startAng + (spread / (totalProj-1)) * projIndex;
+                 }
+            }
              let baseSpeed = 6;
              let baseLife = 1.25;
 
