@@ -67,9 +67,9 @@ const ELEMENTS_DB = [
     // Po (84): 劇毒鞭笞 (Toxic Lash) - 中距離揮擊
     {id:84, s:'Po', cn:'釙', n:'Polonium', g:16, type:'active', desc:'【貧金屬】強烈的放射性毒素凝聚成鞭，揮擊前方扇形區域。', attack:{type:'whip', name:'劇毒鞭笞'}, tags:['近戰','範圍','毒'], dmgMult: 1.1, autoAim: true},
 
-    {id:55, s:'Cs', cn:'銫', n:'Cesium', g:1, type:'active', desc:'【鹼金屬】高活性電子躍遷，極快拳速擊打敵人，並在接觸瞬間釋放連鎖電流。', attack:{type:'cesium_fist', name:'銫光雷拳'}, tags:['近戰','雷','單體'], dmgMult: 0.8},
+    {id:55, s:'Cs', cn:'銫', n:'Cesium', g:1, type:'active', desc:'【鹼金屬】高活性電子躍遷，極快拳速擊打敵人，並在接觸瞬間釋放連鎖電流。', attack:{type:'cesium_fist', name:'銫光雷拳'}, tags:['近戰','雷','單體'], dmgMult: 0.8, autoAim: true},
 
-    {id:85, s:'At', cn:'砈', n:'Astatine', g:17, type:'active', desc:'【鹵素】極稀有的放射性元素，揮舞巨大的虛空鐮刀，將周圍敵人強行吸入斬擊中心。', attack:{type:'astatine_scythe', name:'虛空鎌'}, tags:['近戰','範圍','持續'], dmgMult: 1.6},
+    {id:85, s:'At', cn:'砈', n:'Astatine', g:17, type:'active', desc:'【鹵素】極稀有的放射性元素，揮舞巨大的虛空鐮刀，將周圍敵人強行吸入斬擊中心。', attack:{type:'astatine_scythe', name:'虛空鎌'}, tags:['近戰','範圍','持續'], dmgMult: 1.6, autoAim: true},
 
 
     // --- 原有輔助 (Supports) - [數值重構] ---
