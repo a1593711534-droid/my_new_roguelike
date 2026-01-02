@@ -334,7 +334,7 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
                 ang = startAng + (spread / (totalProj-1)) * projIndex;
             }
             
-            let range = 450 * velocityScale; 
+            let range = 250 * velocityScale; 
             let endX = player.x + Math.cos(ang) * range;
             let endY = player.y + Math.sin(ang) * range;
             
@@ -347,7 +347,7 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
                 else { xx = player.x + param * C; yy = player.y + param * D; }
                 let dx = e.x - xx, dy = e.y - yy, dist = Math.hypot(dx, dy);
 
-                if (dist < (10 * sizeScale) + e.size) {
+                if (dist < (30 * sizeScale) + e.size) {
                     if(executeThreshold > 0 && e.hp < e.maxHp * executeThreshold) {
                          e.hp = 0;
                          dmgNums.push({x:e.x, y:e.y, val:"EXECUTE", life:1, color:'#cc00ff', size:18});
@@ -364,7 +364,7 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
 
             projectiles.push({
                 x: player.x, y: player.y, endX: endX, endY: endY,
-                life: 0.2, maxLife: 0.2, size: 4 * sizeScale, 
+                life: 0.2, maxLife: 0.2, size: 30 * sizeScale, 
                 type: 'laser', color: '#ff0033'
             });
         }

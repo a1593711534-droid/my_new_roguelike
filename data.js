@@ -21,7 +21,7 @@ const ELEMENTS_DB = [
 
     // --- 舊有新增主動 ---
     // [Balance] Ne: 傷害 1.5
-    {id:10, s:'Ne', cn:'氖', n:'Neon', g:18, type:'active', desc:'【惰性氣體】通電激發高能紅光，瞬間貫穿。', attack:{type:'laser', name:'氦氖雷射'}, tags:['法術','火','範圍'], dmgMult: 1.5},
+    {id:10, s:'Ne', cn:'氖', n:'Neon', g:18, type:'active', desc:'【惰性氣體】通電激發高能紅光，瞬間貫穿。', attack:{type:'laser', name:'氦氖雷射'}, tags:['法術','火','範圍'], dmgMult: 2.0},
     
     // [Balance] K: 傷害 0.9
     {id:19, s:'K', cn:'鉀', n:'Potassium', g:1, type:'active', desc:'【鹼金屬】活性極高，撞擊產生劇烈連鎖爆破。', attack:{type:'cluster', name:'紫焰爆破'}, tags:['投射物','範圍','火'], dmgMult: 0.9},
