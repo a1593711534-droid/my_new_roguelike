@@ -570,14 +570,21 @@ function updateCombat(dt) {
                     if (Math.abs(angleDiff) > Math.PI / 2) hit = false;
                 }
                 // [新增] 釙-鞭笞的角度檢測 (修復打到背後的問題)
-                else if(p.type === 'whip_slash') {
+                else if(p.type === 'whip_slash' || p.type === 'cesium_fist' || p.type === 'astatine_scythe') {
                     let dx = e.x - player.x, dy = e.y - player.y;
                     let angleToEnemy = Math.atan2(dy, dx);
                     let angleDiff = angleToEnemy - p.angle; // 注意: whip 使用 p.angle
                     while (angleDiff <= -Math.PI) angleDiff += Math.PI * 2;
                     while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
                     // 限制角度 (1.0 弧度約等於 57度，左右各57度即扇形寬度)
-                    if (Math.abs(angleDiff) > 1.0) hit = false;
+                    let limit = 1.0;
+                    if(p.type === 'cesium_fist') {
+                        limit = 0.6; // 約 35度 (總寬度 70度)
+                    }
+                    else if(p.type === 'astatine_scythe') {
+                        limit = 1.8; // 約 103度 (總寬度 206度，大範圍橫掃)
+                    }
+                    if (Math.abs(angleDiff) > limit) hit = false;
                 }
             }
             
