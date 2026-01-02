@@ -220,22 +220,16 @@ function updateCombat(dt) {
             p.fireTimer -= dt;
             if(p.fireTimer <= 0) {
                 p.fireTimer = 0.5; 
-                let target = getNearestEnemy();
-                if(target) {
-                    let baseAng = Math.atan2(target.y - p.y, target.x - p.x);
+                if(p.isArgonNova) {
+                    // 使用傳遞進來的 bulletCount，若無則預設 10 發
+                    let totalShots = p.bulletCount || 10;
                     let spd = 10 * (p.velocityScale || 1);
-                    
-                    // [Modified] 讀取 multishot 數值進行散彈發射
-                    let extraShots = p.multishot || 0;
-                    let totalShots = 1 + extraShots;
 
                     for(let k=0; k<totalShots; k++) {
-                        let ang = baseAng;
-                        if(totalShots > 1) {
-                            let spread = 0.5; // 30度左右的擴散角
-                            let startAng = baseAng - spread/2;
-                            ang = startAng + (spread / (totalShots-1)) * k;
-                        }
+                        // 360 度均分角度
+                        let ang = (Math.PI * 2 / totalShots) * k;
+                        // 可選：加上一點旋轉偏移讓每次發射角度不同
+                        // ang += Date.now() / 1000; 
 
                         projectiles.push({
                             x: p.x, y: p.y, vx: Math.cos(ang)*spd, vy: Math.sin(ang)*spd,
@@ -244,6 +238,34 @@ function updateCombat(dt) {
                             homing: p.homing, execute: p.execute, fork: p.fork,
                             corpseExplode: p.corpseExplode, corpseDmg: p.corpseDmg
                         });
+                    }
+                }
+                // 原有的瞄準邏輯 (無 Argon 時執行)
+                else {
+                    let target = getNearestEnemy();
+                    if(target) {
+                        let baseAng = Math.atan2(target.y - p.y, target.x - p.x);
+                        let spd = 10 * (p.velocityScale || 1);
+                        
+                        let extraShots = p.multishot || 0;
+                        let totalShots = 1 + extraShots;
+
+                        for(let k=0; k<totalShots; k++) {
+                            let ang = baseAng;
+                            if(totalShots > 1) {
+                                let spread = 0.5; 
+                                let startAng = baseAng - spread/2;
+                                ang = startAng + (spread / (totalShots-1)) * k;
+                            }
+
+                            projectiles.push({
+                                x: p.x, y: p.y, vx: Math.cos(ang)*spd, vy: Math.sin(ang)*spd,
+                                life: 1.0, size: 4, dmg: p.dmg, type: 'turret_bullet', color: '#aaffff',
+                                isCrit: p.isCrit, pierce: p.pierce, knockback: p.knockback, bounce: p.bounce,
+                                homing: p.homing, execute: p.execute, fork: p.fork,
+                                corpseExplode: p.corpseExplode, corpseDmg: p.corpseDmg
+                            });
+                        }
                     }
                 }
             }

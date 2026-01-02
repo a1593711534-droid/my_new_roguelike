@@ -340,7 +340,10 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
                 type:'slash', 
                 color:'#ffffff', isCrit:isCrit, knockback: knockbackVal,
                 execute: executeThreshold,
-                corpseExplode: corpseExplodeChance, corpseDmg: finalDmg * corpseExplodeDmgScale
+                corpseExplode: corpseExplodeChance, corpseDmg: finalDmg * corpseExplodeDmgScale,
+                aftershockChance: aftershockChance,
+                aftershockDmg: finalDmg * 0.5,
+                spawnCloudRatio: window.thalliumCloudRatio || 0
             });
         }
         // 7. 雷射 (氖)
@@ -617,7 +620,9 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
                 fireTimer: 0, 
                 areaScale: finalAreaMult, velocityScale: velocityScale, 
                 multishot: multishotAdd, // 傳遞多重投射數量給哨塔實體
-                corpseExplode: corpseExplodeChance, corpseDmg: finalDmg * corpseExplodeDmgScale
+                corpseExplode: corpseExplodeChance, corpseDmg: finalDmg * corpseExplodeDmgScale,
+                isArgonNova: window.isArgonNova,
+                bulletCount: projCount + multishotAdd
             });
         }
         // 16. 螺旋星雲 (銣 Rb)
@@ -676,7 +681,10 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
                 corpseExplode: corpseExplodeChance, corpseDmg: finalDmg * corpseExplodeDmgScale,
                 explosionDmg: finalDmg * 2.0, 
                 explosionArea: finalAreaMult,
-                durationScale: durationScale
+                durationScale: durationScale,
+                aftershockChance: aftershockChance,
+                aftershockDmg: finalDmg * 0.5,
+                spawnCloudRatio: window.thalliumCloudRatio || 0
             });
         }
         // 18. 超流體旋風 (氦 He)
@@ -706,7 +714,10 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
                 pullForce: 0.8, 
                 ownerId: player, 
                 execute: executeThreshold,
-                corpseExplode: corpseExplodeChance, corpseDmg: finalDmg * corpseExplodeDmgScale
+                corpseExplode: corpseExplodeChance, corpseDmg: finalDmg * corpseExplodeDmgScale,
+                aftershockChance: aftershockChance,
+                aftershockDmg: finalDmg * 0.5,
+                spawnCloudRatio: window.thalliumCloudRatio || 0
             });
         }
         // 19. 原子裂地 (鍅 Fr)
@@ -739,7 +750,10 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
                 knockback: knockbackVal + 5, 
                 hitList: [],
                 execute: executeThreshold,
-                corpseExplode: corpseExplodeChance, corpseDmg: finalDmg * corpseExplodeDmgScale
+                corpseExplode: corpseExplodeChance, corpseDmg: finalDmg * corpseExplodeDmgScale,
+                aftershockChance: aftershockChance,
+                aftershockDmg: finalDmg * 0.5,
+                spawnCloudRatio: window.thalliumCloudRatio || 0
             });
         }
         // 20. 鐳光重擊 (鐳 Ra)
@@ -770,7 +784,10 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
                 type: 'slash', 
                 color: '#ffffaa', 
                 pierce: 999, isCrit: isCrit, knockback: knockbackVal,
-                execute: executeThreshold, corpseExplode: corpseExplodeChance, corpseDmg: finalDmg * corpseExplodeDmgScale
+                execute: executeThreshold, corpseExplode: corpseExplodeChance, corpseDmg: finalDmg * corpseExplodeDmgScale,
+                aftershockChance: aftershockChance,
+                aftershockDmg: finalDmg * 0.5,
+                spawnCloudRatio: window.thalliumCloudRatio || 0
             });
 
             setTimeout(() => {
@@ -784,7 +801,10 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
                     isCrit: isCrit,
                     hitList: [],
                     knockback: knockbackVal,
-                    execute: executeThreshold, corpseExplode: corpseExplodeChance, corpseDmg: finalDmg * corpseExplodeDmgScale
+                    execute: executeThreshold, corpseExplode: corpseExplodeChance, corpseDmg: finalDmg * corpseExplodeDmgScale,
+                    aftershockChance: aftershockChance,
+                    aftershockDmg: finalDmg * 0.5,
+                    spawnCloudRatio: window.thalliumCloudRatio || 0
                 });
             }, 100); 
         }
@@ -822,7 +842,8 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
                     corpseExplode: corpseExplodeChance, corpseDmg: finalDmg * corpseExplodeDmgScale,
                     // 傳遞餘震機率
                     aftershockChance: aftershockChance,
-                    aftershockDmg: finalDmg * 0.5
+                    aftershockDmg: finalDmg * 0.5,
+                    spawnCloudRatio: window.thalliumCloudRatio || 0
                 });
             }
         }
@@ -864,7 +885,8 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
                 corpseExplode: corpseExplodeChance, corpseDmg: finalDmg * corpseExplodeDmgScale,
                 // 傳遞餘震機率
                 aftershockChance: aftershockChance,
-                aftershockDmg: finalDmg * 0.5
+                aftershockDmg: finalDmg * 0.5,
+                spawnCloudRatio: window.thalliumCloudRatio || 0
             });
         }
         // [New Active] Cs: 銫光雷拳 (Cesium Flux-Fist)
