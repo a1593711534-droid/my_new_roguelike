@@ -60,6 +60,13 @@ const ELEMENTS_DB = [
     // Ra (88): 鐳光重擊 (Smite)
     {id:88, s:'Ra', cn:'鐳', n:'Radium', g:2, type:'active', desc:'【鹼土金屬】強烈的放射發光特性，揮擊時召喚淨化光束轟擊區域。', attack:{type:'smite', name:'鐳光重擊'}, tags:['近戰','範圍','雷'], dmgMult: 1.8, autoAim: true},
 
+    // --- [CUSTOM REQUEST] New Melee Actives ---
+    // Ge (32): 晶體新星 (Crystal Nova) - 360度近戰防禦
+    {id:32, s:'Ge', cn:'鍺', n:'Germanium', g:14, type:'active', desc:'【類金屬】半導體晶格瞬間生長，向四周刺出排斥性晶刺。', attack:{type:'crystal_nova', name:'晶體新星'}, tags:['近戰','範圍','物理'], dmgMult: 1.4},
+    
+    // Po (84): 劇毒鞭笞 (Toxic Lash) - 中距離揮擊
+    {id:84, s:'Po', cn:'釙', n:'Polonium', g:16, type:'active', desc:'【貧金屬】強烈的放射性毒素凝聚成鞭，揮擊前方扇形區域。', attack:{type:'whip', name:'劇毒鞭笞'}, tags:['近戰','範圍','毒'], dmgMult: 1.1, autoAim: true},
+
 
     // --- 原有輔助 (Supports) - [數值重構] ---
     {id:3, s:'Li', cn:'鋰', n:'Lithium', g:1, type:'support', desc:'【鹼金屬】高活性的化學催化劑，以燃燒壽命為代價換取極限爆發。', effect:{type:'swiftness', base:0.30, growth:0.02}, supportTags:['持續']}, 
@@ -95,12 +102,16 @@ const ELEMENTS_DB = [
     // Rn (86): 高密度壓縮 (Concentrated Effect)
     {id:86, s:'Rn', cn:'氡', n:'Radon', g:18, type:'support', desc:'【惰性氣體】已知最重的氣體，將能量高密度壓縮以換取毀滅性破壞力。', effect:{type:'concentrated', base:0.40, growth:0.01}, supportTags:['範圍']},
 
+    // --- [CUSTOM REQUEST] New Specific Supports ---
+    // In (49): 餘震 (Aftershock) - 僅限近戰
+    {id:49, s:'In', cn:'銦', n:'Indium', g:13, type:'support', desc:'【貧金屬】極佳的延展性將衝擊力傳導至地面。近戰命中時產生小範圍餘震。', effect:{type:'aftershock', base:0.5, growth:0.05}, supportTags:['近戰']},
+
+    // Te (52): 重型彈藥 (Heavy Ammo) - 僅限投射物
+    {id:52, s:'Te', cn:'碲', n:'Tellurium', g:16, type:'support', desc:'【類金屬】增加彈頭質量與動能，強化衝擊力但犧牲飛行速度。', effect:{type:'heavy_ammo', base:0.3, growth:0.02}, supportTags:['投射物']},
+
 
     // --- Fillers ---
-    {id:55, s:'Cs', cn:'銫', n:'Cesium', g:1}, 
-    {id:49, s:'In', cn:'銦', n:'Indium', g:13}, {id:81, s:'Tl', cn:'鉈', n:'Thallium', g:13},
-    {id:32, s:'Ge', cn:'鍺', n:'Germanium', g:14}, 
-    {id:52, s:'Te', cn:'碲', n:'Tellurium', g:16}, {id:84, s:'Po', cn:'釙', n:'Polonium', g:16},
+    {id:55, s:'Cs', cn:'銫', n:'Cesium', g:1}, {id:81, s:'Tl', cn:'鉈', n:'Thallium', g:13},
     {id:85, s:'At', cn:'砈', n:'Astatine', g:17},
     {id:18, s:'Ar', cn:'氬', n:'Argon', g:18}
 ];
@@ -123,7 +134,9 @@ const STARTERS = [
     { elId: 83, name: '鉍 (哨塔)', icon: '🗼' },
     { elId: 37, name: '銣 (星雲)', icon: '🌀' },
     { elId: 87, name: '鍅 (裂地)', icon: '🌋' },
-    { elId: 88, name: '鐳 (懲擊)', icon: '✨' }
+    { elId: 88, name: '鐳 (懲擊)', icon: '✨' },
+    { elId: 32, name: '鍺 (晶刺)', icon: '❄️' }, 
+    { elId: 84, name: '釙 (毒鞭)', icon: '🐍' }
 ];
 
 const SOCKET_POS = [{x:60,y:30},{x:140,y:30},{x:140,y:100},{x:60,y:100},{x:60,y:170},{x:140,y:170}];

@@ -162,6 +162,23 @@ function updateCombat(dt) {
              p.y += p.vy * dt * 60;
              spawnParticles(p.x, p.y, 2, '#ffaa00');
         }
+        else if(p.type === 'crystal_spike') {
+             p.x += p.vx * dt * 60;
+             p.y += p.vy * dt * 60;
+             // 留下殘影
+             if(Math.random() < 0.2) {
+                 particles.push({x:p.x, y:p.y, vx:0, vy:0, life:0.3, color:p.color, size:2});
+             }
+        }
+        else if(p.type === 'whip_slash') {
+            // 鞭子跟隨玩家移動
+            let dx = p.x - player.x;
+            let dy = p.y - player.y;
+            p.x = player.x + dx; 
+            p.y = player.y + dy;
+            // 角度稍微擺動
+            // p.angle += 0.1; 
+        }
         else if(p.type === 'boomerang') {
             if (p.returnState !== 1) {
                 p.vx *= (1 - 0.02 * (dt * 60));
@@ -529,7 +546,8 @@ function updateCombat(dt) {
             if(p.type === 'smite_bolt') hitSize = p.size; // Smite size fix
 
             if(dist < hitSize) hit=true;
-            if(hit && (p.type === 'slash' || p.type === 'phosphorus_thrust')) {
+            if(hit) {
+                // 原有的 slash 判定
                 if(p.type === 'slash') {
                     let dx = e.x - player.x, dy = e.y - player.y;
                     let angleToEnemy = Math.atan2(dy, dx);
@@ -537,6 +555,16 @@ function updateCombat(dt) {
                     while (angleDiff <= -Math.PI) angleDiff += Math.PI * 2;
                     while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
                     if (Math.abs(angleDiff) > Math.PI / 2) hit = false;
+                }
+                // [新增] 釙-鞭笞的角度檢測 (修復打到背後的問題)
+                else if(p.type === 'whip_slash') {
+                    let dx = e.x - player.x, dy = e.y - player.y;
+                    let angleToEnemy = Math.atan2(dy, dx);
+                    let angleDiff = angleToEnemy - p.angle; // 注意: whip 使用 p.angle
+                    while (angleDiff <= -Math.PI) angleDiff += Math.PI * 2;
+                    while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+                    // 限制角度 (1.0 弧度約等於 57度，左右各57度即扇形寬度)
+                    if (Math.abs(angleDiff) > 1.0) hit = false;
                 }
             }
             
@@ -578,6 +606,32 @@ function updateCombat(dt) {
                          spawnParticles(e.x,e.y, 5 * (p.areaScale||1), p.color);
                     } else {
                          applyDamage(e, p.dmg, p.isCrit, p.execute, p.color, p.corpseExplode, p.corpseDmg);
+                         if(p.aftershockChance && Math.random() < p.aftershockChance) {
+                        // 觸發餘震，位置在敵人身上
+                        triggerAftershock(e.x, e.y, p.aftershockDmg || (p.dmg * 0.5), p.areaScale, p.isCrit);
+                        // 避免重複觸發 (如果是穿透性攻擊，每次命中獨立計算，但為了效能可以設限)
+                        // 這裡我們允許每次命中都判定
+                    }
+
+                    // [Custom Feature] Specific Logic for New Types
+                    if(p.type === 'crystal_spike') {
+                        // 晶體尖刺不銷毀，直到壽命結束 (pierce 999 已經在 weaponSystem 設定)
+                        if(!p.hitList.includes(e)) {
+                            p.hitList.push(e);
+                            // 強制極大擊退
+                            let kAng = Math.atan2(e.y - player.y, e.x - player.x);
+                            e.x += Math.cos(kAng) * p.knockback * 4; 
+                            e.y += Math.sin(kAng) * p.knockback * 4;
+                        }
+                    }
+                    else if(p.type === 'whip_slash') {
+                         if(!p.hitList.includes(e)) {
+                            p.hitList.push(e);
+                            // 額外 DoT 效果可以用現有的 acid_pool 模擬，或直接給傷害
+                            // 這裡直接給予額外的一次性毒素傷害模擬 DoT
+                            applyDamage(e, p.dmg * 0.3, false, 0, '#88ff00');
+                        }
+                    }
                          let pCount = (p.isCrit?8:3) * (p.areaScale || 1);
                          spawnParticles(e.x,e.y, pCount, p.color);
                          if(p.knockback > 0) {
@@ -717,4 +771,21 @@ function applyDamage(e, dmg, isCrit, executeThreshold, color='#fff', corpseChanc
         spawnParticles(e.x, e.y, 8, '#ffaaaa');
         showToast("Chain Reaction!");
     }
+}
+
+// [combatPhysics.js] - 新增此函數
+function triggerAftershock(x, y, dmg, scale, isCrit) {
+    projectiles.push({
+        x: x, y: y, vx: 0, vy: 0,
+        life: 0.3, maxLife: 0.3,
+        size: 40 * (scale || 1), maxSize: 60 * (scale || 1),
+        dmg: dmg,
+        type: 'explosion_instant', // 復用現有的爆炸邏輯
+        color: '#aaaaaa', // 物理灰白色
+        isCrit: isCrit,
+        hitList: [],
+        knockback: 2
+    });
+    // 簡單的特效
+    spawnParticles(x, y, 5, '#aaaaaa');
 }

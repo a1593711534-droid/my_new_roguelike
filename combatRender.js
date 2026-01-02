@@ -494,6 +494,62 @@ function drawCombatEffects() {
             CTX.restore();
         }
 
+        // [New Visual] Ge: Crystal Spike
+        else if(p.type === 'crystal_spike') {
+            CTX.save();
+            CTX.translate(p.x, p.y);
+            let ang = Math.atan2(p.vy, p.vx);
+            CTX.rotate(ang);
+            
+            CTX.fillStyle = p.color;
+            CTX.shadowBlur = 10; CTX.shadowColor = p.color;
+            
+            // 繪製尖刺形狀
+            CTX.beginPath();
+            CTX.moveTo(p.size, 0);
+            CTX.lineTo(-p.size, p.size * 0.4);
+            CTX.lineTo(-p.size * 0.5, 0);
+            CTX.lineTo(-p.size, -p.size * 0.4);
+            CTX.closePath();
+            CTX.fill();
+            
+            CTX.restore();
+        }
+        // [New Visual] Po: Whip Slash
+        else if(p.type === 'whip_slash') {
+            CTX.save();
+            CTX.translate(player.x, player.y); // 以玩家為中心
+            CTX.rotate(p.angle);
+            
+            let progress = 1 - (p.life / p.maxLife); 
+            // 鞭打動畫：先伸長後消失
+            CTX.globalAlpha = 1 - progress;
+            
+            CTX.shadowBlur = 15; CTX.shadowColor = '#00ff00';
+            CTX.strokeStyle = p.color;
+            CTX.lineWidth = 4;
+            CTX.lineCap = 'round';
+            
+            // 繪製貝茲曲線模擬鞭子
+            CTX.beginPath();
+            CTX.moveTo(0, 0);
+            // 控制點隨時間變化，產生甩動感
+            let cp1x = p.size * 0.3;
+            let cp1y = Math.sin(progress * 10) * 30;
+            let cp2x = p.size * 0.7;
+            let cp2y = -Math.sin(progress * 10) * 30;
+            CTX.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p.size, 0);
+            CTX.stroke();
+            
+            // 鞭頭
+            CTX.fillStyle = '#ccff00';
+            CTX.beginPath();
+            CTX.arc(p.size, 0, 5, 0, 6.28);
+            CTX.fill();
+
+            CTX.restore();
+        }
+
         CTX.globalAlpha = 1;
     });
     CTX.globalAlpha=1; CTX.globalCompositeOperation='source-over'; CTX.shadowBlur=0;

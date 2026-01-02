@@ -50,6 +50,7 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
 
     let nativeMult = elDef.dmgMult || 1.0;
     let nativeArea = elDef.areaRatio || 1.0;
+    let aftershockChance = 0;
 
     supports.forEach(sup => {
         let sLvl = sup.level || 1;
@@ -137,6 +138,24 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
             dmgMultiplier *= (1 + dmgBonus); // More Damage
             areaScale *= 0.7; // 30% Less Area
         }
+        // [New Support] In (Indium): Aftershock (Melee Only)
+        if(sup.effect.type === 'aftershock') {
+            // base 0.5 (50%) chance, +5% per level
+            let chance = base + (growthMult * growth);
+            if(chance > 1.0) chance = 1.0;
+            // 將此機率存入一個變數，稍後傳給 projectile
+            // 注意：我們需要在 fireElement 函數開頭宣告 let aftershockChance = 0;
+            if(typeof aftershockChance === 'undefined') window.aftershockChance = 0; // 防呆
+            aftershockChance += chance;
+        }
+
+        // [New Support] Te (Tellurium): Heavy Ammo (Projectile Only)
+        if(sup.effect.type === 'heavy_ammo') {
+            let pwr = base + (growthMult * growth); // 0.3 + ...
+            dmgMultiplier *= (1 + pwr);      // More Damage
+            knockbackVal += (3 + pwr * 5);   // Huge Knockback bonus
+            velocityScale *= (1 - 0.3);      // 30% Less Speed
+        }
     });
 
     let dmg = baseDmg * dmgMultiplier * nativeMult;
@@ -185,8 +204,11 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
                 ang += (Math.random()-0.5)*0.1;
             }
 
-            let spd = 12 * velocityScale;
-            let lifeTime = 0.65; 
+            let baseSpeed = 12;
+            let baseLife = 0.65;
+
+            let spd = baseSpeed * velocityScale; 
+            let lifeTime = (baseLife / velocityScale); 
             
             projectiles.push({
                 x:player.x, y:player.y, vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd, 
@@ -210,8 +232,11 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
                  ang += (Math.random()-0.5)*0.2;
             }
 
-            let spd = 10 * velocityScale;
-            let lifeTime = 0.75; 
+            let baseSpeed = 10;
+            let baseLife = 0.75; 
+
+            let spd = baseSpeed * velocityScale;
+            let lifeTime = (baseLife / velocityScale);
 
             projectiles.push({
                 x:player.x, y:player.y, vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd, 
@@ -356,8 +381,11 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
             } else {
                 ang += (Math.random()-0.5)*0.2;
             }
-            let spd = 10 * velocityScale;
-            let lifeTime = 0.75; 
+            let baseSpeed = 10;
+            let baseLife = 0.75; 
+
+            let spd = baseSpeed * velocityScale;
+            let lifeTime = (baseLife / velocityScale);
             
             projectiles.push({
                 x:player.x, y:player.y, vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd, 
@@ -379,8 +407,11 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
             let startAng = baseAng - spread/2;
             let ang = startAng + (spread / (totalProj-1)) * projIndex;
             
-            let spd = 14 * velocityScale;
-            let life = 0.4; 
+            let baseSpeed = 14;
+            let baseLife = 0.4; 
+
+            let spd = baseSpeed * velocityScale;
+            let lifeTime = (baseLife / velocityScale);
             
             projectiles.push({
                 x:player.x, y:player.y, vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd, 
@@ -404,8 +435,11 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
                 let startAng = ang - spread/2;
                 ang = startAng + (spread / (totalProj-1)) * projIndex;
             }
-            let spd = 3 * velocityScale; 
-            let lifeTime = 1.6 * durationScale;
+            let baseSpeed = 3; 
+            let baseLife = 1.6 * durationScale;
+
+            let spd = baseSpeed * velocityScale;
+            let lifeTime = (baseLife / velocityScale);
 
             projectiles.push({
                 x:player.x, y:player.y, vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd, 
@@ -431,8 +465,11 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
                 ang = startAng + (spread / (totalProj-1)) * projIndex;
             }
 
-            let spd = 18 * velocityScale; 
-            let lifeTime = 0.4; 
+            let baseSpeed = 18; 
+            let baseLife = 0.4; 
+
+            let spd = baseSpeed * velocityScale;
+            let lifeTime = (baseLife / velocityScale);
 
             let chains = 3 + bounceCount;
             
@@ -460,8 +497,11 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
                 ang = startAng + (spread / (totalProj-1)) * projIndex;
             }
 
-            let spd = 5 * velocityScale; 
-            let lifeTime = 1.5; 
+            let baseSpeed = 5; 
+            let baseLife = 1.5; 
+
+            let spd = baseSpeed * velocityScale;
+            let lifeTime = (baseLife / velocityScale);
             
             projectiles.push({
                 x:player.x, y:player.y, vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd, 
@@ -490,8 +530,11 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
                  let startAng = ang - spread/2;
                  ang = startAng + (spread / (totalProj-1)) * projIndex;
              }
-             let spd = 11 * velocityScale;
-             let lifeTime = 0.7; 
+             let baseSpeed = 11;
+             let baseLife = 0.7; 
+
+             let spd = baseSpeed * velocityScale;
+             let lifeTime = (baseLife / velocityScale);
 
              projectiles.push({
                  x:player.x, y:player.y, vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd, 
@@ -517,8 +560,11 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
                  let startAng = ang - spread/2;
                  ang = startAng + (spread / (totalProj-1)) * projIndex;
              }
-             let spd = 6 * velocityScale;
-             let lifeTime = 1.25;
+             let baseSpeed = 6;
+             let baseLife = 1.25;
+
+             let spd = baseSpeed * velocityScale;
+             let lifeTime = (baseLife / velocityScale);
 
             projectiles.push({
                 x:player.x, y:player.y, vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd, 
@@ -584,8 +630,11 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
             let baseAng = player.facing;
             if(t) baseAng = Math.atan2(t.y - player.y, t.x - player.x);
             
-            let spd = 20 * velocityScale; 
-            let lifeTime = 0.15; 
+            let baseSpeed = 20; 
+            let baseLife = 0.15; 
+
+            let spd = baseSpeed * velocityScale;
+            let lifeTime = (baseLife / velocityScale);
 
             let spawnX = player.x;
             let spawnY = player.y;
@@ -649,8 +698,11 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
                 ang += (Math.random() - 0.5) * 0.4;
             }
 
-            let spd = 10 * velocityScale;
-            let lifeTime = 0.35 * durationScale; 
+            let baseSpeed = 10;
+            let baseLife = 0.35 * durationScale; 
+
+            let spd = baseSpeed * velocityScale;
+            let lifeTime = (baseLife / velocityScale);
 
             projectiles.push({
                 x: player.x, y: player.y, 
@@ -714,6 +766,85 @@ function fireElement(elDef, level, supports, weaponStats = { dmgMult: 1.0, crit:
                     execute: executeThreshold, corpseExplode: corpseExplodeChance, corpseDmg: finalDmg * corpseExplodeDmgScale
                 });
             }, 100); 
+        }
+
+        // [weaponSystem.js] - 插入於 spawnAttack 函數內的攻擊類型判斷區
+
+        // [New Active] Ge: 晶體新星 (Crystal Nova)
+        // 360度發射短距離尖刺，不會移動，類似一种瞬間的 "Thrust" 陣列
+        else if(type === 'crystal_nova') {
+            // 基礎數量 8，受 multishot 影響
+            let spikeCount = 8 + Math.floor(totalProj * 2); 
+            
+            for(let k=0; k<spikeCount; k++) {
+                let ang = (Math.PI * 2 / spikeCount) * k;
+                // 稍微隨機偏移
+                if(repeatCount > 0) ang += 0.2;
+
+                let lifeTime = 0.25; // 短暫存在
+                let dist = 60 * finalAreaMult; 
+
+                projectiles.push({
+                    x: player.x, y: player.y, 
+                    vx: Math.cos(ang) * (dist/lifeTime/60), // 計算速度以在 lifeTime 內達到 dist
+                    vy: Math.sin(ang) * (dist/lifeTime/60), 
+                    life: lifeTime, maxLife: lifeTime,
+                    size: 15 * finalAreaMult, 
+                    dmg: finalDmg, 
+                    type: 'crystal_spike', // 對應 physics 與 render
+                    color: '#e6e6fa', // 淡紫色/晶體色
+                    isCrit: isCrit, 
+                    pierce: 999, 
+                    knockback: knockbackVal + 8, // 基礎擊退很高
+                    hitList: [],
+                    execute: executeThreshold,
+                    corpseExplode: corpseExplodeChance, corpseDmg: finalDmg * corpseExplodeDmgScale,
+                    // 傳遞餘震機率
+                    aftershockChance: aftershockChance,
+                    aftershockDmg: finalDmg * 0.5
+                });
+            }
+        }
+
+        // [New Active] Po: 劇毒鞭笞 (Toxic Lash)
+        // 揮出一條長鞭，判定為一個彎曲的形狀或一連串的點
+        else if(type === 'whip') {
+            let t = getNearestEnemy();
+            let baseAng = player.facing; 
+            if(elDef.autoAim && t) {
+                baseAng = Math.atan2(t.y - player.y, t.x - player.x);
+            }
+            
+            // 根據投射物數量扇形分佈
+            let ang = baseAng;
+            if(totalProj > 1) {
+                let spread = 0.8; 
+                let startAng = baseAng - spread/2;
+                ang = startAng + (spread / (totalProj-1)) * projIndex;
+            }
+
+            let range = 180 * finalAreaMult;
+            let lifeTime = 0.3;
+
+            projectiles.push({
+                x: player.x, y: player.y,
+                vx: Math.cos(ang) * 2, vy: Math.sin(ang) * 2, // 稍微移動一點
+                angle: ang,
+                life: lifeTime, maxLife: lifeTime,
+                size: range, // size 在這裡是長度
+                dmg: finalDmg,
+                type: 'whip_slash',
+                color: '#88ff00',
+                isCrit: isCrit,
+                pierce: 999,
+                knockback: knockbackVal + 1,
+                hitList: [],
+                execute: executeThreshold,
+                corpseExplode: corpseExplodeChance, corpseDmg: finalDmg * corpseExplodeDmgScale,
+                // 傳遞餘震機率
+                aftershockChance: aftershockChance,
+                aftershockDmg: finalDmg * 0.5
+            });
         }
     };
 

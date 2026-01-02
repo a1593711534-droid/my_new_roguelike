@@ -118,6 +118,18 @@ function calculateEffectStats(def, level) {
              val = base + (growthMult * growth);
              text = `多重施法機率 <span style="color:#00ff00">+${Math.round(val*100)}%</span> (瞬間連發)`;
         }
+        // [New Support] In: Aftershock
+        else if (def.effect.type === 'aftershock') {
+            val = base + (growthMult * growth);
+            if(val > 1.0) val = 1.0;
+            text = `近戰命中時 <span style="color:#00ff00">${Math.round(val*100)}%</span> 機率<br>產生餘震造成 50% 範圍傷害`;
+        }
+        // [New Support] Te: Heavy Ammo
+        else if (def.effect.type === 'heavy_ammo') {
+             val = base + (growthMult * growth);
+             let speedLoss = 30; // 固定 30%
+             text = `造成傷害 <span style="color:#00ff00">+${Math.round(val*100)}%</span> (More)<br>擊退距離大增<br>投射物速度 <span style="color:#ff5555">-${speedLoss}%</span>`;
+        }
 
         return { text: text, subText: "" };
     }
